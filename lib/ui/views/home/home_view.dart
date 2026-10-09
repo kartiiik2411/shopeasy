@@ -1,418 +1,470 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
+import '../../../core/theme/app_color.dart';
+import '../../../core/theme/app_size.dart';
 import 'home_viewmodel.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
   const HomeView({super.key});
 
-  static const Color primary = Color(0xFF6C3CE9);
-  static const Color pageBackground = Color(0xFFF7F7FC);
+  @override
+  HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
 
   @override
   Widget builder(BuildContext context, HomeViewModel viewModel, Widget? child) {
     return Scaffold(
-      backgroundColor: pageBackground,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                child: Row(
+                padding: const EdgeInsets.all(AppSize.paddingL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(11),
-                      decoration: BoxDecoration(
-                        color: primary,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: const Icon(
-                        Icons.shopping_bag_rounded,
-                        color: Colors.white,
-                        size: 25,
-                      ),
+                    _buildHeader(),
+                    const SizedBox(height: AppSize.spaceXL),
+                    _buildWelcome(),
+                    const SizedBox(height: AppSize.spaceL),
+                    _buildSearch(viewModel),
+                    const SizedBox(height: AppSize.spaceXL),
+                    _buildBanner(),
+                    const SizedBox(height: AppSize.spaceXXL),
+                    _buildSectionTitle('Categories', 'Explore'),
+                    const SizedBox(height: AppSize.spaceM),
+                    _buildCategories(viewModel),
+                    const SizedBox(height: AppSize.spaceXXL),
+                    _buildSectionTitle(
+                      viewModel.selectedNavIndex == 2
+                          ? 'My Wishlist'
+                          : 'Popular Products',
+                      '${viewModel.visibleProducts.length} items',
                     ),
-                    const SizedBox(width: 11),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ShopEasy',
-                            style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF252238),
-                            ),
-                          ),
-                          Text(
-                            'Discover your next favorite',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => viewModel.setNavigationIndex(2),
-                      icon: const Icon(
-                        Icons.favorite_border_rounded,
-                        color: primary,
-                        size: 27,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.shopping_cart_outlined,
-                        color: Color(0xFF252238),
-                        size: 25,
-                      ),
-                    ),
+                    const SizedBox(height: AppSize.spaceM),
                   ],
                 ),
               ),
             ),
-
-            // Search
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
-                child: TextField(
-                  onChanged: viewModel.search,
-                  decoration: InputDecoration(
-                    hintText: 'Search products...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIcon: viewModel.searchQuery.isNotEmpty
-                        ? IconButton(
-                            onPressed: () => viewModel.search(''),
-                            icon: const Icon(Icons.close),
-                          )
-                        : const Icon(Icons.tune_rounded),
-                  ),
-                ),
-              ),
-            ),
-
-            // Promotional banner
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(21),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6C3CE9), Color(0xFF9B75F5)],
-                    ),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SPECIAL COLLECTION',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
-                                letterSpacing: 1.2,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              'Find your style.\nLove your choice.',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 23,
-                                height: 1.25,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 9),
-                            Text(
-                              'Explore products picked for you.',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.shopping_bag_rounded,
-                        color: Colors.white70,
-                        size: 76,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Categories heading
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 25, 20, 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Categories',
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => viewModel.setNavigationIndex(1),
-                      child: const Text('View all'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Category chips
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 43,
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  scrollDirection: Axis.horizontal,
-                  children: viewModel.categories.map((category) {
-                    final selected = viewModel.selectedCategory == category;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 9),
-                      child: ChoiceChip(
-                        label: Text(category),
-                        selected: selected,
-                        onSelected: (_) => viewModel.selectCategory(category),
-                        selectedColor: primary,
-                        backgroundColor: Colors.white,
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        labelStyle: TextStyle(
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFF484458),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-
-            // Products heading
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 14),
-                child: Text(
-                  viewModel.selectedNavIndex == 2
-                      ? 'My Wishlist'
-                      : viewModel.searchQuery.isNotEmpty
-                      ? 'Search Results'
-                      : 'Popular Products',
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-            // Product grid
             if (viewModel.visibleProducts.isEmpty)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(35),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          size: 45,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'No products found',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: Text('No products found.')),
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSize.paddingL,
+                ),
                 sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final product = viewModel.visibleProducts[index];
-                    final id = product['id'] as int;
-                    final favorite = viewModel.isWishlisted(id);
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(9),
-                                    child: Image.network(
-                                      product['image'] as String,
-                                      fit: BoxFit.contain,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Center(
-                                              child: Icon(
-                                                Icons.image_outlined,
-                                                size: 42,
-                                                color: Colors.grey,
-                                              ),
-                                            );
-                                          },
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 5,
-                                  right: 5,
-                                  child: Material(
-                                    color: Colors.white,
-                                    shape: const CircleBorder(),
-                                    child: IconButton(
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () =>
-                                          viewModel.toggleWishlist(id),
-                                      icon: Icon(
-                                        favorite
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: favorite
-                                            ? Colors.red
-                                            : Colors.grey,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(11, 5, 11, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product['category'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  product['title'] as String,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.amber,
-                                      size: 15,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '${product['rating']}',
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      '\$${(product['price'] as num).toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        color: primary,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }, childCount: viewModel.visibleProducts.length),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildProductCard(
+                      viewModel,
+                      viewModel.visibleProducts[index],
+                    ),
+                    childCount: viewModel.visibleProducts.length,
+                  ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 13,
-                    mainAxisSpacing: 13,
-                    mainAxisExtent: 245,
+                    crossAxisSpacing: AppSize.spaceM,
+                    mainAxisSpacing: AppSize.spaceM,
+                    mainAxisExtent: 290,
                   ),
                 ),
               ),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSize.spaceXXL)),
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomNavigation(viewModel),
+    );
+  }
 
-      // Bottom navigation
-      bottomNavigationBar: BottomNavigationBar(
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          height: 46,
+          width: 46,
+          decoration: BoxDecoration(
+            gradient: AppColors.buttonGradient,
+            borderRadius: BorderRadius.circular(AppSize.radiusL),
+          ),
+          child: const Icon(
+            Icons.shopping_bag_outlined,
+            color: AppColors.white,
+            size: AppSize.iconL,
+          ),
+        ),
+        const SizedBox(width: AppSize.spaceM),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ShopEasy',
+                style: TextStyle(
+                  color: AppColors.primaryPurple,
+                  fontSize: AppSize.fontXXL,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                'Good things, great prices.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: AppSize.fontXS,
+                ),
+              ),
+            ],
+          ),
+        ),
+        _iconButton(Icons.notifications_none_rounded, () {}),
+      ],
+    );
+  }
+
+  Widget _buildWelcome() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Welcome back 👋',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: AppSize.fontM,
+          ),
+        ),
+        SizedBox(height: AppSize.spaceXS),
+        Text(
+          'Find your next favorite',
+          style: TextStyle(
+            color: AppColors.black,
+            fontSize: AppSize.fontHeading,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearch(HomeViewModel viewModel) {
+    return Container(
+      height: AppSize.inputHeight,
+      padding: const EdgeInsets.symmetric(horizontal: AppSize.paddingL),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppSize.inputRadius),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search_rounded, color: AppColors.textTertiary),
+          const SizedBox(width: AppSize.spaceM),
+          Expanded(
+            child: TextField(
+              onChanged: viewModel.search,
+              decoration: const InputDecoration(
+                hintText: 'Search products...',
+                hintStyle: TextStyle(
+                  color: AppColors.textTertiary,
+                  fontSize: AppSize.fontM,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
+          const Icon(Icons.tune_rounded, color: AppColors.primaryPurple),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSize.paddingXXL),
+      decoration: BoxDecoration(
+        gradient: AppColors.purplePinkGradient,
+        borderRadius: BorderRadius.circular(AppSize.radiusXXL),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.primaryPurpleShadow,
+            blurRadius: AppSize.elevationL,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSize.paddingM,
+              vertical: AppSize.paddingS,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(AppSize.radiusCircular),
+            ),
+            child: const Text(
+              'YOUR NEXT GREAT FIND',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: AppSize.fontXS,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSize.spaceL),
+          const Text(
+            'Discover more.\nSpend less.',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: AppSize.fontTitle,
+              height: 1.2,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: AppSize.spaceS),
+          const Text(
+            'Explore everyday essentials and new arrivals.',
+            style: TextStyle(color: AppColors.white, fontSize: AppSize.fontS),
+          ),
+          const SizedBox(height: AppSize.spaceL),
+          FilledButton(
+            onPressed: () {},
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.white,
+              foregroundColor: AppColors.primaryPurple,
+              minimumSize: const Size(140, AppSize.buttonHeightS),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSize.buttonRadius),
+              ),
+            ),
+            child: const Text(
+              'Explore now  →',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, String action) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.black,
+            fontSize: AppSize.fontXXL,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          action,
+          style: const TextStyle(
+            color: AppColors.primaryPurple,
+            fontSize: AppSize.fontS,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategories(HomeViewModel viewModel) {
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: viewModel.categories.length,
+        separatorBuilder: (_, _) => const SizedBox(width: AppSize.spaceS),
+        itemBuilder: (context, index) {
+          final category = viewModel.categories[index];
+          final selected = viewModel.selectedCategory == category;
+
+          return ChoiceChip(
+            label: Text(category),
+            selected: selected,
+            onSelected: (_) => viewModel.selectCategory(category),
+            backgroundColor: AppColors.white,
+            selectedColor: AppColors.primaryPurple,
+            side: BorderSide(
+              color: selected ? AppColors.primaryPurple : AppColors.border,
+            ),
+            labelStyle: TextStyle(
+              color: selected ? AppColors.white : AppColors.textSecondary,
+              fontSize: AppSize.fontS,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSize.radiusCircular),
+            ),
+            showCheckmark: false,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductCard(
+    HomeViewModel viewModel,
+    Map<String, dynamic> product,
+  ) {
+    final id = product['id'] as int;
+    final wishlisted = viewModel.isWishlisted(id);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppSize.radiusL),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppSize.radiusL),
+                    ),
+                    child: Image.network(
+                      product['image'] as String,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        color: AppColors.illustrationBackground,
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: AppColors.primaryPurple,
+                          size: AppSize.iconXXL,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: AppSize.paddingS,
+                  right: AppSize.paddingS,
+                  child: Material(
+                    color: AppColors.white,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => viewModel.toggleWishlist(id),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSize.paddingS),
+                        child: Icon(
+                          wishlisted ? Icons.favorite : Icons.favorite_border,
+                          color: wishlisted
+                              ? AppColors.primaryPink
+                              : AppColors.textSecondary,
+                          size: AppSize.iconS,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSize.paddingM),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product['category'] as String,
+                  style: const TextStyle(
+                    color: AppColors.textTertiary,
+                    fontSize: AppSize.fontXS,
+                  ),
+                ),
+                const SizedBox(height: AppSize.spaceXS),
+                Text(
+                  product['name'] as String,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.black,
+                    fontSize: AppSize.fontM,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSize.spaceS),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '₹${(product['price'] as num).toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: AppSize.fontL,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accentYellow,
+                      size: AppSize.iconS,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${product['rating']}',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: AppSize.fontS,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation(HomeViewModel viewModel) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: BottomNavigationBar(
         currentIndex: viewModel.selectedNavIndex,
         onTap: viewModel.setNavigationIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: primary,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.primaryPurple,
+        unselectedItemColor: AppColors.textTertiary,
+        selectedFontSize: AppSize.fontXS,
+        unselectedFontSize: AppSize.fontXS,
+        elevation: 0,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
+            icon: Icon(Icons.grid_view_rounded),
             label: 'Categories',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border_rounded),
+            activeIcon: Icon(Icons.favorite_rounded),
             label: 'Wishlist',
           ),
           BottomNavigationBarItem(
@@ -424,6 +476,23 @@ class HomeView extends StackedView<HomeViewModel> {
     );
   }
 
-  @override
-  HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
+  Widget _iconButton(IconData icon, VoidCallback onPressed) {
+    return Material(
+      color: AppColors.white,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          height: AppSize.avatarM,
+          width: AppSize.avatarM,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Icon(icon, color: AppColors.black, size: AppSize.iconM),
+        ),
+      ),
+    );
+  }
 }

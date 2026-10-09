@@ -19,109 +19,80 @@ class HomeViewModel extends BaseViewModel {
   final List<Map<String, dynamic>> products = [
     {
       'id': 1,
-      'title': 'Wireless Headphones',
+      'name': 'Wireless Headphones',
       'category': 'Electronics',
-      'price': 59.99,
+      'price': 1499.0,
       'rating': 4.8,
       'image':
-          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600',
     },
     {
       'id': 2,
-      'title': 'Classic Sneakers',
+      'name': 'Classic Sneakers',
       'category': 'Fashion',
-      'price': 74.99,
+      'price': 2199.0,
       'rating': 4.6,
       'image':
-          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500',
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600',
     },
     {
       'id': 3,
-      'title': 'Smart Watch',
+      'name': 'Smart Watch',
       'category': 'Electronics',
-      'price': 99.99,
+      'price': 1899.0,
       'rating': 4.7,
       'image':
-          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
     },
     {
       'id': 4,
-      'title': 'Everyday Backpack',
+      'name': 'Travel Backpack',
       'category': 'Fashion',
-      'price': 44.99,
+      'price': 999.0,
       'rating': 4.5,
       'image':
-          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500',
+          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
     },
     {
       'id': 5,
-      'title': 'Skincare Essentials',
+      'name': 'Skin Care Set',
       'category': 'Beauty',
-      'price': 29.99,
+      'price': 799.0,
       'rating': 4.4,
       'image':
-          'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=500',
+          'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
     },
     {
       'id': 6,
-      'title': 'Minimal Table Lamp',
+      'name': 'Table Lamp',
       'category': 'Home',
-      'price': 39.99,
-      'rating': 4.3,
+      'price': 1299.0,
+      'rating': 4.5,
       'image':
-          'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500',
-    },
-    {
-      'id': 7,
-      'title': 'Sport Training Shoes',
-      'category': 'Sports',
-      'price': 64.99,
-      'rating': 4.6,
-      'image':
-          'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=500',
-    },
-    {
-      'id': 8,
-      'title': 'Travel Sunglasses',
-      'category': 'Fashion',
-      'price': 24.99,
-      'rating': 4.2,
-      'image':
-          'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500',
+          'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600',
     },
   ];
 
   List<Map<String, dynamic>> get visibleProducts {
-    Iterable<Map<String, dynamic>> result = products;
+    return products.where((product) {
+      final matchesCategory =
+          selectedCategory == 'All' || product['category'] == selectedCategory;
 
-    if (selectedCategory != 'All') {
-      result = result.where(
-        (product) => product['category'] == selectedCategory,
+      final matchesSearch = product['name'].toString().toLowerCase().contains(
+        searchQuery.toLowerCase(),
       );
-    }
 
-    if (searchQuery.trim().isNotEmpty) {
-      final query = searchQuery.trim().toLowerCase();
-      result = result.where(
-        (product) =>
-            (product['title'] as String).toLowerCase().contains(query) ||
-            (product['category'] as String).toLowerCase().contains(query),
-      );
-    }
+      final matchesWishlist =
+          selectedNavIndex != 2 || _wishlistIds.contains(product['id'] as int);
 
-    if (selectedNavIndex == 2) {
-      result = result.where(
-        (product) => _wishlistIds.contains(product['id'] as int),
-      );
-    }
-
-    return result.toList();
+      return matchesCategory && matchesSearch && matchesWishlist;
+    }).toList();
   }
 
   bool isWishlisted(int id) => _wishlistIds.contains(id);
 
-  void search(String query) {
-    searchQuery = query;
+  void search(String value) {
+    searchQuery = value;
     rebuildUi();
   }
 
@@ -131,9 +102,9 @@ class HomeViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  void toggleWishlist(int productId) {
-    if (!_wishlistIds.add(productId)) {
-      _wishlistIds.remove(productId);
+  void toggleWishlist(int id) {
+    if (!_wishlistIds.add(id)) {
+      _wishlistIds.remove(id);
     }
     rebuildUi();
   }
