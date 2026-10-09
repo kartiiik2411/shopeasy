@@ -87,7 +87,7 @@ class LoginView extends StackedView<LoginViewModel> {
                                   _GoogleMark(),
                                   SizedBox(width: AppSize.spaceM),
                                   Text(
-                                    'Continue with Google',
+                                    'Choose a Google account',
                                     style: TextStyle(
                                       fontSize: AppSize.fontL,
                                       fontWeight: FontWeight.w700,

@@ -43,6 +43,8 @@ class LoginViewModel extends BaseViewModel {
     final message = error.message.toUpperCase();
     if (error.code == 'configuration-not-found' ||
         error.code == 'missing-client-identifier' ||
+        error.code == 'clientConfigurationError' ||
+        error.code == 'providerConfigurationError' ||
         message.contains('CONFIGURATION_NOT_FOUND')) {
       return 'Google sign-in is not configured for this Firebase project. '
           'Enable Google in Firebase Console under Authentication > '

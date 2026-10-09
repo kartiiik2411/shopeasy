@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../domain/entities/auth_exception.dart';
 import '../../domain/entities/auth_user.dart';
@@ -10,6 +11,7 @@ class FirebaseAuthRepository implements AuthRepository {
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _firebaseAuth;
+  Future<void>? _googleSignInInitialization;
 
   @override
   Future<AuthUser?> getCurrentUser() async {
@@ -23,15 +25,44 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<AuthUser> signInWithGoogle() async {
-    final provider = GoogleAuthProvider();
     final UserCredential credential;
-    try {
-      credential = kIsWeb
-          ? await _firebaseAuth.signInWithPopup(provider)
-          : await _firebaseAuth.signInWithProvider(provider);
-    } on FirebaseAuthException catch (error) {
-      throw _toAuthException(error);
+    if (kIsWeb) {
+      try {
+        credential = await _firebaseAuth.signInWithPopup(GoogleAuthProvider());
+      } on FirebaseAuthException catch (error) {
+        throw _toAuthException(error);
+      }
+    } else {
+      final GoogleSignInAccount account;
+      try {
+        await _initializeGoogleSignIn();
+        account = await GoogleSignIn.instance.authenticate();
+      } on GoogleSignInException catch (error) {
+        throw AuthException(
+          code: error.code.name,
+          message:
+              error.description ?? 'Could not open Google account selection.',
+        );
+      }
+
+      final idToken = account.authentication.idToken;
+      if (idToken == null) {
+        throw const AuthException(
+          code: 'missing-client-identifier',
+          message:
+              'Google did not return an ID token. Check the Google OAuth client configuration.',
+        );
+      }
+
+      try {
+        credential = await _firebaseAuth.signInWithCredential(
+          GoogleAuthProvider.credential(idToken: idToken),
+        );
+      } on FirebaseAuthException catch (error) {
+        throw _toAuthException(error);
+      }
     }
+
     final user = credential.user;
     if (user == null) {
       throw const AuthException(
@@ -48,6 +79,27 @@ class FirebaseAuthRepository implements AuthRepository {
       await _firebaseAuth.signOut();
     } on FirebaseAuthException catch (error) {
       throw _toAuthException(error);
+    }
+    if (!kIsWeb) {
+      try {
+        await GoogleSignIn.instance.signOut();
+      } on GoogleSignInException catch (error) {
+        throw AuthException(
+          code: error.code.name,
+          message: error.description ?? 'Could not sign out of Google.',
+        );
+      }
+    }
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    final initialization =
+        _googleSignInInitialization ??= GoogleSignIn.instance.initialize();
+    try {
+      await initialization;
+    } catch (_) {
+      _googleSignInInitialization = null;
+      rethrow;
     }
   }
 

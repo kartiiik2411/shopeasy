@@ -1,6 +1,7 @@
 # shopeasy_app
 
-ShopEasy is a Flutter shopping app with a Firebase-backed Google sign-in flow.
+ShopEasy is a Flutter shopping app with a Google account chooser and
+Firebase-backed sign-in flow.
 
 ## Authentication setup
 
@@ -15,6 +16,10 @@ ShopEasy is a Flutter shopping app with a Firebase-backed Google sign-in flow.
    also be configured as a URL scheme in the Runner target. The downloaded
    files must include the platform's Google OAuth client configuration.
 4. Run `flutter pub get`, then launch with `flutter run`.
+
+On Android and iOS, tapping **Choose a Google account** opens the native Google
+account chooser. Selecting an account signs it into Firebase; canceling returns
+to the login screen.
 
 ## Structure
 

@@ -12,7 +12,20 @@
           "package_name": "com.example.shopeasy_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "967783066207-g5c6aura206tgtkoidocg1hdb3oe4d9v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopeasy_app",
+            "certificate_hash": "6b569d7353eaf9d56bbfaad259b6c09c5533e0b4"
+          }
+        },
+        {
+          "client_id": "967783066207-lvpa6gsd85ls6nv7nbsav8poq3t0h7l5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCM6u9-h53wKDWM-EH9UGYUQm_kcVzRdCw"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "967783066207-lvpa6gsd85ls6nv7nbsav8poq3t0h7l5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
