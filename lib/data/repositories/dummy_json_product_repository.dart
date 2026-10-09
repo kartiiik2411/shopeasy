@@ -45,7 +45,7 @@ class DummyJsonProductRepository implements ProductRepository {
     ) as Map<String, dynamic>;
     final products = (response['products'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()
-        .map(Product.fromJson)
+        .map(_productFromJson)
         .toList(growable: false);
 
     if (normalizedQuery.isNotEmpty &&
@@ -71,6 +71,30 @@ class DummyJsonProductRepository implements ProductRepository {
     final response =
         await _apiService.get('${ApiConstants.products}/$id')
             as Map<String, dynamic>;
-    return Product.fromJson(response);
+    return _productFromJson(response);
+  }
+
+  Product _productFromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    if (id is! num) {
+      throw const FormatException('Product response is missing a valid id.');
+    }
+
+    return Product(
+      id: id.toInt(),
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      discountPercentage:
+          (json['discountPercentage'] as num?)?.toDouble() ?? 0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0,
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
+      brand: json['brand'] as String?,
+      category: json['category'] as String? ?? '',
+      thumbnail: json['thumbnail'] as String? ?? '',
+      images: (json['images'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(growable: false),
+    );
   }
 }

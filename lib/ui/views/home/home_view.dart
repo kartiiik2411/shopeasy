@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -54,50 +56,66 @@ class HomeView extends StackedView<HomeViewModel> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Sign out',
-            onPressed: viewModel.isSigningOut ? null : viewModel.signOut,
-            icon: viewModel.isSigningOut
-                ? const SizedBox(
-                    width: AppSize.iconS,
-                    height: AppSize.iconS,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.logout_rounded),
+            tooltip: 'Notifications',
+            onPressed: () => _showNotifications(context),
+            icon: const Icon(Icons.notifications_none_rounded),
           ),
         ],
       ),
       body: _buildDestination(viewModel),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: viewModel.selectedNavigationIndex,
-        onTap: viewModel.selectDestination,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryPurple,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          border: const Border(
+            top: BorderSide(color: AppColors.border, width: 0.5),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
-            activeIcon: Icon(Icons.category_rounded),
-            label: 'Category',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart_rounded),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryPurpleShadow,
+              blurRadius: AppSize.elevationL,
+              offset: const Offset(0, -AppSize.paddingXS),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: viewModel.selectedNavigationIndex,
+          onTap: viewModel.selectDestination,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: AppColors.white,
+          selectedItemColor: AppColors.primaryPurple,
+          unselectedItemColor: AppColors.textSecondary,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category_outlined),
+              activeIcon: Icon(Icons.category_rounded),
+              label: 'Category',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_outlined),
+              activeIcon: Icon(Icons.shopping_cart_rounded),
+              label: 'Cart',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline_rounded),
+              activeIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _showNotifications(BuildContext context) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('You are all caught up!')));
   }
 
   Widget _buildDestination(HomeViewModel viewModel) {
@@ -132,28 +150,68 @@ class HomeView extends StackedView<HomeViewModel> {
             AppSize.paddingL,
             AppSize.paddingM,
           ),
-          child: TextField(
-            onChanged: viewModel.search,
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Search products...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: viewModel.searchQuery.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      onPressed: () => viewModel.search(''),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-              filled: true,
-              fillColor: AppColors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSize.radiusM),
-                borderSide: BorderSide.none,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: AppColors.buttonGradient,
+              borderRadius: BorderRadius.circular(AppSize.radiusM),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.primaryPurpleShadow,
+                  blurRadius: AppSize.elevationS,
+                  offset: Offset(0, AppSize.paddingXS),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(1.5),
+              child: TextField(
+                onChanged: viewModel.search,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Search products...',
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.primaryPurple,
+                  ),
+                  suffixIcon: viewModel.searchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          onPressed: () => viewModel.search(''),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                  filled: true,
+                  fillColor: AppColors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: AppSize.paddingL,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSize.radiusM - 1),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSize.radiusM - 1),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSize.radiusM - 1),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
               ),
             ),
           ),
         ),
+        if (viewModel.products.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSize.paddingL,
+              0,
+              AppSize.paddingL,
+              AppSize.paddingM,
+            ),
+            child: _ProductImageSlider(products: viewModel.products),
+          ),
         if (viewModel.categoriesError != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSize.paddingL),
@@ -163,26 +221,49 @@ class HomeView extends StackedView<HomeViewModel> {
             ),
           )
         else if (viewModel.categories.isNotEmpty)
-          SizedBox(
-            height: AppSize.buttonHeightS,
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSize.paddingL),
-              scrollDirection: Axis.horizontal,
-              children: [
-                _CategoryChip(
-                  label: 'All',
-                  selected: viewModel.selectedCategory == null,
-                  onSelected: () => viewModel.selectCategory(null),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSize.paddingL,
+                  AppSize.paddingXS,
+                  AppSize.paddingL,
+                  AppSize.paddingS,
                 ),
-                ...viewModel.categories.map(
-                  (category) => _CategoryChip(
-                    label: _prettyCategory(category),
-                    selected: viewModel.selectedCategory == category,
-                    onSelected: () => viewModel.selectCategory(category),
+                child: Text(
+                  'Categories',
+                  style: TextStyle(
+                    color: AppColors.black,
+                    fontSize: AppSize.fontL,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(
+                height: AppSize.buttonHeightS,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSize.paddingL,
+                  ),
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _CategoryChip(
+                      label: 'All',
+                      selected: viewModel.selectedCategory == null,
+                      onSelected: () => viewModel.selectCategory(null),
+                    ),
+                    ...viewModel.categories.map(
+                      (category) => _CategoryChip(
+                        label: _prettyCategory(category),
+                        selected: viewModel.selectedCategory == category,
+                        onSelected: () => viewModel.selectCategory(category),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         const SizedBox(height: AppSize.spaceS),
         Expanded(
@@ -356,6 +437,223 @@ class HomeView extends StackedView<HomeViewModel> {
   HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
 }
 
+class _ProductImageSlider extends StatefulWidget {
+  const _ProductImageSlider({required this.products});
+
+  final List<Product> products;
+
+  @override
+  State<_ProductImageSlider> createState() => _ProductImageSliderState();
+}
+
+class _ProductImageSliderState extends State<_ProductImageSlider> {
+  static const _slideInterval = Duration(milliseconds: 1500);
+  static const _transitionDuration = Duration(milliseconds: 450);
+
+  late final PageController _pageController;
+  Timer? _timer;
+  int _currentIndex = 0;
+  int _direction = 1;
+
+  int get _slideCount =>
+      widget.products.length < 5 ? widget.products.length : 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _startAutoSlide();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProductImageSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.products.length != oldWidget.products.length) {
+      _currentIndex = _currentIndex < _slideCount ? _currentIndex : 0;
+      _direction = 1;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) {
+          _pageController.jumpToPage(_currentIndex);
+        }
+      });
+      _startAutoSlide();
+    }
+  }
+
+  void _startAutoSlide() {
+    _timer?.cancel();
+    if (_slideCount < 2) return;
+    _timer = Timer.periodic(_slideInterval, (_) {
+      if (!mounted || !_pageController.hasClients) return;
+      if (_currentIndex == _slideCount - 1) {
+        _direction = -1;
+      } else if (_currentIndex == 0) {
+        _direction = 1;
+      }
+      _pageController.animateToPage(
+        _currentIndex + _direction,
+        duration: _transitionDuration,
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  void _onPageChanged(int index) {
+    if (index != _currentIndex) {
+      _direction = index > _currentIndex ? 1 : -1;
+    }
+    setState(() => _currentIndex = index);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = widget.products.take(_slideCount).toList(growable: false);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppSize.radiusL),
+      child: SizedBox(
+        height: 148,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: slides.length,
+              onPageChanged: _onPageChanged,
+              itemBuilder: (context, index) {
+                final product = slides[index];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      product.thumbnail,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const ColoredBox(
+                            color: AppColors.illustrationBackground,
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: AppColors.primaryPurple,
+                              size: AppSize.iconXXL,
+                            ),
+                          ),
+                    ),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerRight,
+                          end: Alignment.centerLeft,
+                          colors: [Color(0x00000000), Color(0xCC1F1F1F)],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: AppSize.paddingL,
+                      right: AppSize.paddingL,
+                      bottom: AppSize.paddingXXL,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'FEATURED',
+                            style: TextStyle(
+                              color: AppColors.lightPink,
+                              fontSize: AppSize.fontXS,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: AppSize.spaceXS),
+                          Text(
+                            product.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: AppSize.fontXL,
+                              fontWeight: FontWeight.w700,
+                              shadows: [
+                                Shadow(
+                                  color: AppColors.black,
+                                  blurRadius: AppSize.elevationS,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            Positioned(
+              right: AppSize.paddingM,
+              top: AppSize.paddingM,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSize.paddingS,
+                  vertical: AppSize.paddingXS,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(AppSize.radiusCircular),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${_currentIndex + 1} / ${slides.length}',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: AppSize.fontXS,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: AppSize.paddingS,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(slides.length, (index) {
+                  final selected = index == _currentIndex;
+                  return AnimatedContainer(
+                    duration: _transitionDuration,
+                    width: selected ? AppSize.paddingL : AppSize.paddingXS,
+                    height: AppSize.paddingXS,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: AppSize.paddingXS,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.white
+                          : AppColors.white.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(
+                        AppSize.radiusCircular,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.label,
@@ -401,16 +699,42 @@ class _CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: AppSize.paddingS),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onSelected(),
-        selectedColor: AppColors.primaryPurple,
-        backgroundColor: AppColors.white,
-        labelStyle: TextStyle(
-          color: selected ? AppColors.white : AppColors.black,
-          fontSize: AppSize.fontS,
-          fontWeight: FontWeight.w600,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppSize.radiusCircular),
+          onTap: onSelected,
+          child: Ink(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSize.paddingL,
+              vertical: AppSize.paddingS,
+            ),
+            decoration: BoxDecoration(
+              gradient: selected ? AppColors.buttonGradient : null,
+              color: selected ? null : AppColors.white,
+              border: selected ? null : Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(AppSize.radiusCircular),
+              boxShadow: selected
+                  ? [
+                      const BoxShadow(
+                        color: AppColors.primaryPurpleShadow,
+                        blurRadius: AppSize.elevationS,
+                        offset: Offset(0, AppSize.paddingXS),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? AppColors.white : AppColors.black,
+                  fontSize: AppSize.fontS,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -515,9 +839,10 @@ class _ProductCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       color: AppColors.white,
-      elevation: AppSize.elevationS,
+      elevation: AppSize.elevationM,
+      shadowColor: AppColors.primaryPurpleShadow,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSize.radiusM),
+        borderRadius: BorderRadius.circular(AppSize.radiusL),
       ),
       child: InkWell(
         onTap: onTap,
@@ -525,21 +850,113 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: Image.network(
-                  product.thumbnail,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.image_not_supported)),
-                ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(
+                    color: AppColors.illustrationBackground.withValues(
+                      alpha: 0.45,
+                    ),
+                    child: Image.network(
+                      product.thumbnail,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: AppColors.textTertiary,
+                        size: AppSize.iconXL,
+                      ),
+                    ),
+                  ),
+                  if (product.discountPercentage > 0)
+                    Positioned(
+                      top: AppSize.paddingS,
+                      left: AppSize.paddingS,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.buttonGradient,
+                          borderRadius: BorderRadius.circular(
+                            AppSize.radiusCircular,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSize.paddingS,
+                            vertical: AppSize.paddingXS,
+                          ),
+                          child: Text(
+                            '-${product.discountPercentage.toStringAsFixed(0)}%',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: AppSize.fontXS,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    top: AppSize.paddingS,
+                    right: AppSize.paddingS,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSize.paddingS,
+                        vertical: AppSize.paddingXS,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(
+                          AppSize.radiusCircular,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.star_rounded,
+                            color: AppColors.accentYellow,
+                            size: AppSize.iconXS,
+                          ),
+                          const SizedBox(width: AppSize.spaceXS),
+                          Text(
+                            product.rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: AppColors.black,
+                              fontSize: AppSize.fontXS,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(AppSize.paddingM),
+              padding: const EdgeInsets.fromLTRB(
+                AppSize.paddingM,
+                AppSize.paddingM,
+                AppSize.paddingM,
+                AppSize.paddingL,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (product.brand != null && product.brand!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSize.paddingXS),
+                      child: Text(
+                        product.brand!.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: AppSize.fontXS,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
                   Text(
                     product.title,
                     maxLines: 2,
@@ -547,31 +964,34 @@ class _ProductCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.black,
                       fontSize: AppSize.fontM,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: AppSize.spaceS),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Text(
-                          '\$${product.price.toStringAsFixed(2)}',
+                          '\$${product.discountedPrice.toStringAsFixed(2)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: AppColors.primaryPurple,
                             fontSize: AppSize.fontL,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                      const Icon(
-                        Icons.star_rounded,
-                        color: AppColors.accentYellow,
-                        size: AppSize.iconS,
-                      ),
-                      Text(
-                        product.rating.toStringAsFixed(1),
-                        style: const TextStyle(fontSize: AppSize.fontS),
-                      ),
+                      if (product.discountPercentage > 0)
+                        Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: AppColors.textTertiary,
+                            fontSize: AppSize.fontXS,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
                     ],
                   ),
                 ],

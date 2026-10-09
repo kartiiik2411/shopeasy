@@ -4,7 +4,7 @@ class AppColors {
   AppColors._();
 
   static const Color primaryPurple = Color(0xFF7B2FF7);
-  static const Color secondaryPurple = Color(0xFF9D50BB);
+  static const Color secondaryPurple = Color.fromARGB(255, 120, 181, 230);
   static const Color primaryPink = Color(0xFFFF6CAB);
   static const Color lightPink = Color(0xFFFF8CC6);
 
@@ -33,7 +33,7 @@ class AppColors {
   );
 
   static const LinearGradient buttonGradient = LinearGradient(
-    colors: [primaryPurple, primaryPink],
+    colors: [primaryPurple, secondaryPurple],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );

@@ -7,8 +7,10 @@ environment:
   sdk: ^3.12.1
 
 dependencies:
+  firebase_auth: ^6.7.0
   flutter:
     sdk: flutter
+  google_sign_in: ^7.2.0
   http: ^1.6.0
   stacked: ^3.5.0
   stacked_services: ^1.6.0
