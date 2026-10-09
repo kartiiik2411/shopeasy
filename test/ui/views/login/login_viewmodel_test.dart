@@ -1,85 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shopeasy_app/app/app.router.dart';
-import 'package:shopeasy_app/domain/entities/auth_exception.dart';
+import 'package:shopeasy_app/core/network/api_exception.dart';
 import 'package:shopeasy_app/domain/entities/auth_user.dart';
 import 'package:shopeasy_app/domain/repositories/auth_repository.dart';
-import 'package:shopeasy_app/domain/use_cases/sign_in_with_google_use_case.dart';
+import 'package:shopeasy_app/domain/use_cases/login_use_case.dart';
 import 'package:shopeasy_app/ui/views/login/login_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 void main() {
-  group('LoginViewModel.signIn', () {
-    test('navigates home after successful Google sign-in', () async {
+  group('LoginViewModel.login', () {
+    test('uses credentials and navigates to the catalogue on success', () async {
+      final repository = _FakeAuthRepository();
       final navigationService = _RecordingNavigationService();
       final viewModel = LoginViewModel(
-        signInWithGoogle: _SuccessfulSignIn(),
+        loginUseCase: LoginUseCase(repository),
         navigationService: navigationService,
       );
+      viewModel.usernameController.text = 'emilys';
+      viewModel.passwordController.text = 'emilyspass';
 
-      await viewModel.signIn();
+      final error = await viewModel.login();
 
+      expect(error, isNull);
+      expect(repository.username, 'emilys');
+      expect(repository.password, 'emilyspass');
       expect(navigationService.replacedRoute, Routes.homeView);
-      expect(viewModel.hasError, isFalse);
       expect(viewModel.isBusy, isFalse);
+      viewModel.dispose();
     });
 
-    test(
-      'stays on login when the Google account chooser is canceled',
-      () async {
-        final navigationService = _RecordingNavigationService();
-        final viewModel = LoginViewModel(
-          signInWithGoogle: _FailingSignIn(
-            const AuthException(code: 'canceled', message: 'Canceled by user.'),
-          ),
-          navigationService: navigationService,
-        );
-
-        await viewModel.signIn();
-
-        expect(navigationService.replacedRoute, isNull);
-        expect(viewModel.hasError, isFalse);
-        expect(viewModel.isBusy, isFalse);
-      },
-    );
-
-    test('explains Firebase CONFIGURATION_NOT_FOUND errors', () async {
+    test('returns API login errors for the error dialog', () async {
       final viewModel = LoginViewModel(
-        signInWithGoogle: _FailingSignIn(
-          const AuthException(
-            code: 'internal-error',
-            message: 'An internal error occurred. [ CONFIGURATION_NOT_FOUND ]',
-          ),
+        loginUseCase: LoginUseCase(
+          _FakeAuthRepository(error: const ApiException('Invalid credentials')),
         ),
         navigationService: NavigationService(),
       );
+      viewModel.usernameController.text = 'wrong';
+      viewModel.passwordController.text = 'wrong';
 
-      await viewModel.signIn();
+      final error = await viewModel.login();
 
-      expect(
-        viewModel.modelError,
-        contains('Enable Google in Firebase Console'),
-      );
+      expect(error, 'Invalid credentials');
       expect(viewModel.isBusy, isFalse);
+      viewModel.dispose();
     });
   });
-}
-
-class _SuccessfulSignIn extends SignInWithGoogleUseCase {
-  _SuccessfulSignIn() : super(_FakeAuthRepository());
-
-  @override
-  Future<AuthUser> call() async =>
-      const AuthUser(id: 'google-user', email: 'shopper@example.com');
-}
-
-class _FailingSignIn extends SignInWithGoogleUseCase {
-  _FailingSignIn(this._error) : super(_FakeAuthRepository());
-
-  final AuthException _error;
-
-  @override
-  Future<AuthUser> call() => Future<AuthUser>.error(_error);
 }
 
 class _RecordingNavigationService extends NavigationService {
@@ -100,12 +67,25 @@ class _RecordingNavigationService extends NavigationService {
 }
 
 class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository({this.error});
+
+  final Object? error;
+  String? username;
+  String? password;
+
   @override
   Future<AuthUser?> getCurrentUser() async => null;
 
   @override
-  Future<AuthUser> signInWithGoogle() async =>
-      throw StateError('Not used by this test.');
+  Future<AuthUser> login({
+    required String username,
+    required String password,
+  }) async {
+    if (error case final failure?) throw failure;
+    this.username = username;
+    this.password = password;
+    return const AuthUser(id: '1', email: 'emily@example.com');
+  }
 
   @override
   Future<void> signOut() async {}

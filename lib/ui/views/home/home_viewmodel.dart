@@ -1,145 +1,151 @@
-import 'package:stacked_services/stacked_services.dart';
+import 'dart:async';
+
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import '../../../app/app.locator.dart';
 import '../../../app/app.router.dart';
 import '../../../domain/entities/auth_user.dart';
+import '../../../domain/entities/product.dart';
 import '../../../domain/repositories/auth_repository.dart';
+import '../../../domain/repositories/product_repository.dart';
+import '../../../domain/use_cases/get_categories_use_case.dart';
 import '../../../domain/use_cases/get_current_user_use_case.dart';
+import '../../../domain/use_cases/get_products_use_case.dart';
 import '../../../domain/use_cases/sign_out_use_case.dart';
 
 class HomeViewModel extends BaseViewModel {
   HomeViewModel({
     GetCurrentUserUseCase? getCurrentUser,
     SignOutUseCase? signOut,
+    GetCategoriesUseCase? getCategories,
+    GetProductsUseCase? getProducts,
     NavigationService? navigationService,
   }) : _getCurrentUser =
            getCurrentUser ?? GetCurrentUserUseCase(locator<AuthRepository>()),
        _signOut = signOut ?? SignOutUseCase(locator<AuthRepository>()),
+       _getCategories =
+           getCategories ??
+           GetCategoriesUseCase(locator<ProductRepository>()),
+       _getProducts =
+           getProducts ?? GetProductsUseCase(locator<ProductRepository>()),
        _navigationService = navigationService ?? locator<NavigationService>();
 
   final GetCurrentUserUseCase _getCurrentUser;
   final SignOutUseCase _signOut;
+  final GetCategoriesUseCase _getCategories;
+  final GetProductsUseCase _getProducts;
   final NavigationService _navigationService;
 
-  static const List<Map<String, Object>> _products = [
-    {
-      'id': 1,
-      'title': 'Everyday headphones',
-      'category': 'electronics',
-      'price': 49.99,
-      'rating': 4.6,
-      'image':
-          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600',
-    },
-    {
-      'id': 2,
-      'title': 'Classic wrist watch',
-      'category': 'jewelery',
-      'price': 79.00,
-      'rating': 4.4,
-      'image':
-          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
-    },
-    {
-      'id': 3,
-      'title': 'Casual everyday shirt',
-      'category': "men's clothing",
-      'price': 34.50,
-      'rating': 4.7,
-      'image':
-          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600',
-    },
-    {
-      'id': 4,
-      'title': 'Minimal shoulder bag',
-      'category': "women's clothing",
-      'price': 59.95,
-      'rating': 4.8,
-      'image':
-          'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600',
-    },
-  ];
-
-  static const List<String> categories = [
-    'All',
-    'electronics',
-    'jewelery',
-    "men's clothing",
-    "women's clothing",
-  ];
-
   AuthUser? user;
+  List<Product> products = [];
+  List<String> categories = [];
   String searchQuery = '';
-  String selectedCategory = 'All';
-  int selectedNavIndex = 0;
-  final Set<int> _wishlist = {};
+  String? selectedCategory;
+  String? productsError;
+  String? categoriesError;
+  String? accountError;
+  bool isLoadingProducts = false;
+  bool isSigningOut = false;
+  int selectedNavigationIndex = 0;
+  Timer? _searchDebounce;
+  int _productRequestId = 0;
 
-  List<Map<String, Object>> get visibleProducts {
-    return _products
-        .where((product) {
-          final id = product['id']! as int;
-          final matchesWishlist =
-              selectedNavIndex != 2 || _wishlist.contains(id);
-          final matchesCategory =
-              selectedCategory == 'All' ||
-              product['category'] == selectedCategory;
-          final matchesSearch =
-              (product['title']! as String).toLowerCase().contains(
-                searchQuery.toLowerCase(),
-              ) ||
-              (product['category']! as String).toLowerCase().contains(
-                searchQuery.toLowerCase(),
-              );
-          return matchesWishlist && matchesCategory && matchesSearch;
-        })
-        .toList(growable: false);
+  Future<void> initialise() async {
+    setBusy(true);
+    try {
+      await Future.wait<void>([
+        _getCurrentUser().then<void>(
+          (value) => user = value,
+          onError: (Object error) => accountError = error.toString(),
+        ),
+        _getCategories().then<void>(
+          (value) => categories = value,
+          onError: (Object error) => categoriesError = error.toString(),
+        ),
+      ]);
+      await loadProducts();
+    } finally {
+      setBusy(false);
+      notifyListeners();
+    }
   }
 
   void search(String value) {
     searchQuery = value.trim();
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      loadProducts,
+    );
     notifyListeners();
   }
 
-  void selectCategory(String category) {
+  Future<void> selectCategory(String? category) async {
     selectedCategory = category;
+    await loadProducts();
+  }
+
+  void selectDestination(int index) {
+    selectedNavigationIndex = index;
     notifyListeners();
   }
 
-  void setNavigationIndex(int index) {
-    selectedNavIndex = index;
+  Future<void> selectCategoryFromCategories(String? category) async {
+    selectedCategory = category;
+    selectedNavigationIndex = 0;
     notifyListeners();
+    await loadProducts();
   }
 
-  bool isWishlisted(int productId) => _wishlist.contains(productId);
-
-  void toggleWishlist(int productId) {
-    if (!_wishlist.add(productId)) {
-      _wishlist.remove(productId);
-    }
+  Future<void> loadProducts() async {
+    final requestId = ++_productRequestId;
+    isLoadingProducts = true;
+    productsError = null;
     notifyListeners();
-  }
-
-  Future<void> loadUser() async {
-    setBusy(true);
     try {
-      user = await _getCurrentUser();
+      final results = await _getProducts(
+        query: searchQuery,
+        category: selectedCategory,
+      );
+      if (requestId == _productRequestId) {
+        products = results;
+      }
     } catch (error) {
-      setError(error);
+      if (requestId == _productRequestId) {
+        productsError = error.toString();
+      }
     } finally {
-      setBusy(false);
+      if (requestId == _productRequestId) {
+        isLoadingProducts = false;
+        notifyListeners();
+      }
     }
+  }
+
+  Future<void> openProduct(Product product) {
+    return _navigationService.navigateToProductDetailsView(
+      productId: product.id,
+    );
   }
 
   Future<void> signOut() async {
-    setBusy(true);
+    isSigningOut = true;
+    notifyListeners();
     try {
       await _signOut();
       await _navigationService.replaceWith(Routes.loginView);
     } catch (error) {
       setError(error);
     } finally {
-      setBusy(false);
+      isSigningOut = false;
+      notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 }

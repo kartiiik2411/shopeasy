@@ -1,31 +1,24 @@
 # shopeasy_app
 
-ShopEasy is a Flutter shopping app with a Google account chooser and
-Firebase-backed sign-in flow.
+ShopEasy is a three-screen Flutter shopping app built with Stacked state
+management and the DummyJSON API.
 
-## Authentication setup
+## Run
 
-1. In Firebase Console, enable **Google** under **Authentication → Sign-in
-   method** and select a support email. A `CONFIGURATION_NOT_FOUND` response
-   means this provider configuration is missing from the Firebase project.
-2. Register the Android application ID and iOS bundle ID used by this project.
-   For Android, add the signing certificate SHA-1 and SHA-256 fingerprints.
-3. Download fresh `google-services.json` and `GoogleService-Info.plist` files
-   after enabling Google sign-in and place them in `android/app/` and
-   `ios/Runner/`, respectively. The iOS Google OAuth reversed client ID must
-   also be configured as a URL scheme in the Runner target. The downloaded
-   files must include the platform's Google OAuth client configuration.
-4. Run `flutter pub get`, then launch with `flutter run`.
+```sh
+flutter pub get
+flutter run
+```
 
-On Android and iOS, tapping **Choose a Google account** opens the native Google
-account chooser. Selecting an account signs it into Firebase; canceling returns
-to the login screen.
+Demo login: `emilys` / `emilyspass`.
 
 ## Structure
 
-- `lib/ui/views/`: Stacked views and viewmodels for splash, login, and home.
-- `lib/domain/`: Authentication entities, repository contract, and use cases.
-- `lib/data/`: Firebase implementation of the authentication repository.
+- `lib/ui/views/`: Stacked login, product catalogue, and product details screens.
+- `lib/ui/common/`: Reusable `AppTextField` and `AppDialog` widgets.
+- `lib/core/network/`: `ApiConstants`, `ApiService`, and API errors.
+- `lib/domain/`: Entities, repository contracts, and use cases.
+- `lib/data/`: DummyJSON-backed authentication and product repositories.
 
-Routes and dependencies are generated from `lib/app/app.dart` with
+Routes and dependencies are generated from `lib/app/app.dart` using
 `dart run build_runner build`.
