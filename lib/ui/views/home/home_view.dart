@@ -8,8 +8,8 @@ import 'home_viewmodel.dart';
 class HomeView extends StackedView<HomeViewModel> {
   const HomeView({super.key});
 
-  static const Color primary = Color(0xFF6C3CE9);
-  static const Color pageBackground = Color(0xFFF7F7FC);
+  static const Color primary = AppColors.primaryPurple;
+  static const Color pageBackground = AppColors.background;
 
   @override
   void onViewModelReady(HomeViewModel viewModel) {
@@ -19,70 +19,8 @@ class HomeView extends StackedView<HomeViewModel> {
   @override
   Widget builder(BuildContext context, HomeViewModel viewModel, Widget? child) {
     final displayName = viewModel.user?.displayName;
+    final photoUrl = viewModel.user?.photoUrl;
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('ShopEasy'),
-        backgroundColor: AppColors.background,
-        actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: viewModel.isBusy ? null : viewModel.signOut,
-            icon: const Icon(Icons.logout_rounded),
-          ),
-        ],
-      ),
-      body: Center(
-        child: viewModel.isBusy
-            ? const CircularProgressIndicator()
-            : viewModel.hasError
-            ? Padding(
-                padding: const EdgeInsets.all(AppSize.paddingXXL),
-                child: Text(
-                  viewModel.modelError.toString(),
-                  textAlign: TextAlign.center,
-                ),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (viewModel.user?.photoUrl case final photoUrl?)
-                    CircleAvatar(
-                      radius: AppSize.avatarL,
-                      backgroundImage: NetworkImage(photoUrl),
-                    )
-                  else
-                    const CircleAvatar(
-                      radius: AppSize.avatarL,
-                      backgroundColor: AppColors.illustrationBackground,
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: AppSize.iconXXL,
-                        color: AppColors.primaryPurple,
-                      ),
-                    ),
-                  const SizedBox(height: AppSize.spaceL),
-                  Text(
-                    displayName == null || displayName.isEmpty
-                        ? 'Welcome!'
-                        : 'Welcome, $displayName!',
-                    style: const TextStyle(
-                      color: AppColors.black,
-                      fontSize: AppSize.fontXXL,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSize.spaceS),
-                  const Text(
-                    'You’re signed in and ready to shop.',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-      ),
-=======
       backgroundColor: pageBackground,
       body: SafeArea(
         child: CustomScrollView(
@@ -90,7 +28,12 @@ class HomeView extends StackedView<HomeViewModel> {
             // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSize.paddingXL,
+                  AppSize.paddingXL,
+                  AppSize.paddingXL,
+                  AppSize.paddingM,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -106,19 +49,23 @@ class HomeView extends StackedView<HomeViewModel> {
                       ),
                     ),
                     const SizedBox(width: 11),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ShopEasy',
-                            style: TextStyle(
+                            displayName == null || displayName.isEmpty
+                                ? 'ShopEasy'
+                                : 'Hi, $displayName',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
                               fontSize: 23,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF252238),
                             ),
                           ),
-                          Text(
+                          const Text(
                             'Discover your next favorite',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
@@ -134,17 +81,45 @@ class HomeView extends StackedView<HomeViewModel> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      tooltip: 'Sign out',
+                      onPressed: viewModel.isBusy ? null : viewModel.signOut,
                       icon: const Icon(
-                        Icons.shopping_cart_outlined,
+                        Icons.logout_rounded,
                         color: Color(0xFF252238),
-                        size: 25,
+                        size: 23,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+
+            if (viewModel.selectedNavIndex == 3)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSize.paddingXL,
+                    AppSize.paddingS,
+                    AppSize.paddingXL,
+                    AppSize.paddingL,
+                  ),
+                  child: Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: photoUrl == null
+                            ? null
+                            : NetworkImage(photoUrl),
+                        child: photoUrl == null
+                            ? const Icon(Icons.person_outline_rounded)
+                            : null,
+                      ),
+                      title: Text(displayName ?? 'ShopEasy account'),
+                      subtitle: Text(viewModel.user?.email ?? ''),
+                      trailing: const Icon(Icons.verified_user_outlined),
+                    ),
+                  ),
+                ),
+              ),
 
             // Search
             SliverToBoxAdapter(
@@ -263,7 +238,7 @@ class HomeView extends StackedView<HomeViewModel> {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   scrollDirection: Axis.horizontal,
-                  children: viewModel.categories.map((category) {
+                  children: HomeViewModel.categories.map((category) {
                     final selected = viewModel.selectedCategory == category;
 
                     return Padding(
@@ -465,7 +440,6 @@ class HomeView extends StackedView<HomeViewModel> {
           ],
         ),
       ),
-
       // Bottom navigation
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: viewModel.selectedNavIndex,
@@ -492,7 +466,6 @@ class HomeView extends StackedView<HomeViewModel> {
           ),
         ],
       ),
->>>>>>> origin/devkartik
     );
   }
 
