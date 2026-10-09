@@ -1,98 +1,110 @@
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
+
+import '../../../app/app.locator.dart';
+import '../../../app/app.router.dart';
+import '../../../domain/entities/auth_user.dart';
+import '../../../domain/repositories/auth_repository.dart';
+import '../../../domain/use_cases/get_current_user_use_case.dart';
+import '../../../domain/use_cases/sign_out_use_case.dart';
 
 class HomeViewModel extends BaseViewModel {
-  String searchQuery = '';
-  String selectedCategory = 'All';
-  int selectedNavIndex = 0;
+  HomeViewModel({
+    GetCurrentUserUseCase? getCurrentUser,
+    SignOutUseCase? signOut,
+    NavigationService? navigationService,
+  }) : _getCurrentUser =
+           getCurrentUser ?? GetCurrentUserUseCase(locator<AuthRepository>()),
+       _signOut = signOut ?? SignOutUseCase(locator<AuthRepository>()),
+       _navigationService = navigationService ?? locator<NavigationService>();
 
-  final Set<int> _wishlistIds = {};
+  final GetCurrentUserUseCase _getCurrentUser;
+  final SignOutUseCase _signOut;
+  final NavigationService _navigationService;
 
-  final List<String> categories = [
-    'All',
-    'Electronics',
-    'Fashion',
-    'Beauty',
-    'Home',
-    'Sports',
-  ];
-
-  final List<Map<String, dynamic>> products = [
+  static const List<Map<String, Object>> products = [
     {
       'id': 1,
-      'name': 'Wireless Headphones',
-      'category': 'Electronics',
-      'price': 1499.0,
-      'rating': 4.8,
+      'title': 'Everyday Headphones',
+      'category': 'electronics',
+      'price': 49.99,
+      'rating': 4.6,
       'image':
           'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600',
     },
     {
       'id': 2,
-      'name': 'Classic Sneakers',
-      'category': 'Fashion',
-      'price': 2199.0,
-      'rating': 4.6,
-      'image':
-          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600',
-    },
-    {
-      'id': 3,
-      'name': 'Smart Watch',
-      'category': 'Electronics',
-      'price': 1899.0,
-      'rating': 4.7,
+      'title': 'Classic Wrist Watch',
+      'category': 'jewelery',
+      'price': 79.00,
+      'rating': 4.4,
       'image':
           'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600',
     },
     {
+      'id': 3,
+      'title': 'Casual Everyday Shirt',
+      'category': "men's clothing",
+      'price': 34.50,
+      'rating': 4.7,
+      'image':
+          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600',
+    },
+    {
       'id': 4,
-      'name': 'Travel Backpack',
-      'category': 'Fashion',
-      'price': 999.0,
-      'rating': 4.5,
+      'title': 'Minimal Shoulder Bag',
+      'category': "women's clothing",
+      'price': 59.95,
+      'rating': 4.8,
       'image':
-          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600',
-    },
-    {
-      'id': 5,
-      'name': 'Skin Care Set',
-      'category': 'Beauty',
-      'price': 799.0,
-      'rating': 4.4,
-      'image':
-          'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600',
-    },
-    {
-      'id': 6,
-      'name': 'Table Lamp',
-      'category': 'Home',
-      'price': 1299.0,
-      'rating': 4.5,
-      'image':
-          'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600',
+          'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600',
     },
   ];
 
-  List<Map<String, dynamic>> get visibleProducts {
-    return products.where((product) {
-      final matchesCategory =
-          selectedCategory == 'All' || product['category'] == selectedCategory;
+  static const List<String> categories = [
+    'All',
+    'electronics',
+    'jewelery',
+    "men's clothing",
+    "women's clothing",
+  ];
 
-      final matchesSearch = product['name'].toString().toLowerCase().contains(
-        searchQuery.toLowerCase(),
-      );
+  AuthUser? user;
 
-      final matchesWishlist =
-          selectedNavIndex != 2 || _wishlistIds.contains(product['id'] as int);
+  String searchQuery = '';
+  String selectedCategory = 'All';
+  int selectedNavIndex = 0;
 
-      return matchesCategory && matchesSearch && matchesWishlist;
-    }).toList();
+  final Set<int> _wishlist = {};
+
+  List<Map<String, Object>> get visibleProducts {
+    return products
+        .where((product) {
+          final id = product['id']! as int;
+
+          final matchesWishlist =
+              selectedNavIndex != 2 || _wishlist.contains(id);
+
+          final matchesCategory =
+              selectedCategory == 'All' ||
+              product['category'] == selectedCategory;
+
+          final title = product['title']! as String;
+          final category = product['category']! as String;
+
+          final query = searchQuery.toLowerCase();
+
+          final matchesSearch =
+              title.toLowerCase().contains(query) ||
+              category.toLowerCase().contains(query);
+
+          return matchesWishlist && matchesCategory && matchesSearch;
+        })
+        .toList(growable: false);
   }
 
-  bool isWishlisted(int id) => _wishlistIds.contains(id);
-
   void search(String value) {
-    searchQuery = value;
+    searchQuery = value.trim();
     rebuildUi();
   }
 
@@ -102,15 +114,42 @@ class HomeViewModel extends BaseViewModel {
     rebuildUi();
   }
 
-  void toggleWishlist(int id) {
-    if (!_wishlistIds.add(id)) {
-      _wishlistIds.remove(id);
+  void setNavigationIndex(int index) {
+    selectedNavIndex = index;
+    rebuildUi();
+  }
+
+  bool isWishlisted(int productId) => _wishlist.contains(productId);
+
+  void toggleWishlist(int productId) {
+    if (!_wishlist.add(productId)) {
+      _wishlist.remove(productId);
     }
     rebuildUi();
   }
 
-  void setNavigationIndex(int index) {
-    selectedNavIndex = index;
-    rebuildUi();
+  Future<void> loadUser() async {
+    setBusy(true);
+
+    try {
+      user = await _getCurrentUser();
+    } catch (error) {
+      setError(error);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  Future<void> signOut() async {
+    setBusy(true);
+
+    try {
+      await _signOut();
+      await _navigationService.replaceWith(Routes.loginView);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setBusy(false);
+    }
   }
 }

@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shopeasy_app/app/app.router.dart';
 import 'package:shopeasy_app/domain/entities/auth_exception.dart';
 import 'package:shopeasy_app/domain/entities/auth_user.dart';
 import 'package:shopeasy_app/domain/repositories/auth_repository.dart';
@@ -8,6 +10,39 @@ import 'package:stacked_services/stacked_services.dart';
 
 void main() {
   group('LoginViewModel.signIn', () {
+    test('navigates home after successful Google sign-in', () async {
+      final navigationService = _RecordingNavigationService();
+      final viewModel = LoginViewModel(
+        signInWithGoogle: _SuccessfulSignIn(),
+        navigationService: navigationService,
+      );
+
+      await viewModel.signIn();
+
+      expect(navigationService.replacedRoute, Routes.homeView);
+      expect(viewModel.hasError, isFalse);
+      expect(viewModel.isBusy, isFalse);
+    });
+
+    test(
+      'stays on login when the Google account chooser is canceled',
+      () async {
+        final navigationService = _RecordingNavigationService();
+        final viewModel = LoginViewModel(
+          signInWithGoogle: _FailingSignIn(
+            const AuthException(code: 'canceled', message: 'Canceled by user.'),
+          ),
+          navigationService: navigationService,
+        );
+
+        await viewModel.signIn();
+
+        expect(navigationService.replacedRoute, isNull);
+        expect(viewModel.hasError, isFalse);
+        expect(viewModel.isBusy, isFalse);
+      },
+    );
+
     test('explains Firebase CONFIGURATION_NOT_FOUND errors', () async {
       final viewModel = LoginViewModel(
         signInWithGoogle: _FailingSignIn(
@@ -30,6 +65,14 @@ void main() {
   });
 }
 
+class _SuccessfulSignIn extends SignInWithGoogleUseCase {
+  _SuccessfulSignIn() : super(_FakeAuthRepository());
+
+  @override
+  Future<AuthUser> call() async =>
+      const AuthUser(id: 'google-user', email: 'shopper@example.com');
+}
+
 class _FailingSignIn extends SignInWithGoogleUseCase {
   _FailingSignIn(this._error) : super(_FakeAuthRepository());
 
@@ -37,6 +80,23 @@ class _FailingSignIn extends SignInWithGoogleUseCase {
 
   @override
   Future<AuthUser> call() => Future<AuthUser>.error(_error);
+}
+
+class _RecordingNavigationService extends NavigationService {
+  String? replacedRoute;
+
+  @override
+  Future<T?>? replaceWith<T>(
+    String routeName, {
+    dynamic arguments,
+    int? id,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    RouteTransitionsBuilder? transition,
+  }) {
+    replacedRoute = routeName;
+    return Future<T?>.value();
+  }
 }
 
 class _FakeAuthRepository implements AuthRepository {
