@@ -7,71 +7,56 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 
-import 'package:flutter/foundation.dart' as _i7;
-import 'package:flutter/material.dart' as _i6;
+import 'package:flutter/material.dart' as _i5;
 import 'package:flutter/material.dart';
-import 'package:shopeasy_app/ui/views/home/home_view.dart' as _i4;
-import 'package:shopeasy_app/ui/views/login/login_view.dart' as _i3;
-import 'package:shopeasy_app/ui/views/product_list/product_list_view.dart'
-    as _i5;
-import 'package:shopeasy_app/ui/views/splash/splash_view.dart' as _i2;
+import 'package:shopeasy_app/ui/views/home/home_view.dart' as _i3;
+import 'package:shopeasy_app/ui/views/login/login_view.dart' as _i2;
+import 'package:shopeasy_app/ui/views/product_details/product_details_view.dart'
+    as _i4;
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i8;
+import 'package:stacked_services/stacked_services.dart' as _i6;
 
 class Routes {
-  static const splashView = '/';
-
-  static const loginView = '/login-view';
+  static const loginView = '/';
 
   static const homeView = '/home-view';
 
-  static const productListView = '/product-list-view';
+  static const productDetailsView = '/product-details-view';
 
-  static const all = <String>{splashView, loginView, homeView, productListView};
+  static const all = <String>{loginView, homeView, productDetailsView};
 }
 
 class StackedRouter extends _i1.RouterBase {
   final _routes = <_i1.RouteDef>[
-    _i1.RouteDef(Routes.splashView, page: _i2.SplashView),
-    _i1.RouteDef(Routes.loginView, page: _i3.LoginView),
-    _i1.RouteDef(Routes.homeView, page: _i4.HomeView),
-    _i1.RouteDef(Routes.productListView, page: _i5.ProductListView),
+    _i1.RouteDef(Routes.loginView, page: _i2.LoginView),
+    _i1.RouteDef(Routes.homeView, page: _i3.HomeView),
+    _i1.RouteDef(Routes.productDetailsView, page: _i4.ProductDetailsView),
   ];
 
   final _pagesMap = <Type, _i1.StackedRouteFactory>{
-    _i2.SplashView: (data) {
-      final args = data.getArgs<SplashViewArguments>(
-        orElse: () => const SplashViewArguments(),
-      );
-      return _i6.MaterialPageRoute<dynamic>(
-        builder: (context) => _i2.SplashView(key: args.key),
-        settings: data,
-      );
-    },
-    _i3.LoginView: (data) {
+    _i2.LoginView: (data) {
       final args = data.getArgs<LoginViewArguments>(
         orElse: () => const LoginViewArguments(),
       );
-      return _i6.MaterialPageRoute<dynamic>(
-        builder: (context) => _i3.LoginView(key: args.key),
+      return _i5.MaterialPageRoute<dynamic>(
+        builder: (context) => _i2.LoginView(key: args.key),
         settings: data,
       );
     },
-    _i4.HomeView: (data) {
+    _i3.HomeView: (data) {
       final args = data.getArgs<HomeViewArguments>(
         orElse: () => const HomeViewArguments(),
       );
-      return _i6.MaterialPageRoute<dynamic>(
-        builder: (context) => _i4.HomeView(key: args.key),
+      return _i5.MaterialPageRoute<dynamic>(
+        builder: (context) => _i3.HomeView(key: args.key),
         settings: data,
       );
     },
-    _i5.ProductListView: (data) {
-      final args = data.getArgs<ProductListViewArguments>(
-        orElse: () => const ProductListViewArguments(),
-      );
-      return _i6.MaterialPageRoute<dynamic>(
-        builder: (context) => _i5.ProductListView(key: args.key),
+    _i4.ProductDetailsView: (data) {
+      final args = data.getArgs<ProductDetailsViewArguments>(nullOk: false);
+      return _i5.MaterialPageRoute<dynamic>(
+        builder: (context) =>
+            _i4.ProductDetailsView(productId: args.productId, key: args.key),
         settings: data,
       );
     },
@@ -84,32 +69,10 @@ class StackedRouter extends _i1.RouterBase {
   Map<Type, _i1.StackedRouteFactory> get pagesMap => _pagesMap;
 }
 
-class SplashViewArguments {
-  const SplashViewArguments({this.key});
-
-  final _i7.Key? key;
-
-  @override
-  String toString() {
-    return '{"key": "$key"}';
-  }
-
-  @override
-  bool operator ==(covariant SplashViewArguments other) {
-    if (identical(this, other)) return true;
-    return other.key == key;
-  }
-
-  @override
-  int get hashCode {
-    return key.hashCode;
-  }
-}
-
 class LoginViewArguments {
   const LoginViewArguments({this.key});
 
-  final _i7.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -131,7 +94,7 @@ class LoginViewArguments {
 class HomeViewArguments {
   const HomeViewArguments({this.key});
 
-  final _i7.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -150,49 +113,33 @@ class HomeViewArguments {
   }
 }
 
-class ProductListViewArguments {
-  const ProductListViewArguments({this.key});
+class ProductDetailsViewArguments {
+  const ProductDetailsViewArguments({required this.productId, this.key});
 
-  final _i7.Key? key;
+  final int productId;
+
+  final _i5.Key? key;
 
   @override
   String toString() {
-    return '{"key": "$key"}';
+    return '{"productId": "$productId", "key": "$key"}';
   }
 
   @override
-  bool operator ==(covariant ProductListViewArguments other) {
+  bool operator ==(covariant ProductDetailsViewArguments other) {
     if (identical(this, other)) return true;
-    return other.key == key;
+    return other.productId == productId && other.key == key;
   }
 
   @override
   int get hashCode {
-    return key.hashCode;
+    return productId.hashCode ^ key.hashCode;
   }
 }
 
-extension NavigatorStateExtension on _i8.NavigationService {
-  Future<dynamic> navigateToSplashView({
-    _i7.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-    transition,
-  }) async {
-    return navigateTo<dynamic>(
-      Routes.splashView,
-      arguments: SplashViewArguments(key: key),
-      id: routerId,
-      preventDuplicates: preventDuplicates,
-      parameters: parameters,
-      transition: transition,
-    );
-  }
-
+extension NavigatorStateExtension on _i6.NavigationService {
   Future<dynamic> navigateToLoginView({
-    _i7.Key? key,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -210,7 +157,7 @@ extension NavigatorStateExtension on _i8.NavigationService {
   }
 
   Future<dynamic> navigateToHomeView({
-    _i7.Key? key,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -227,8 +174,9 @@ extension NavigatorStateExtension on _i8.NavigationService {
     );
   }
 
-  Future<dynamic> navigateToProductListView({
-    _i7.Key? key,
+  Future<dynamic> navigateToProductDetailsView({
+    required int productId,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -236,26 +184,8 @@ extension NavigatorStateExtension on _i8.NavigationService {
     transition,
   }) async {
     return navigateTo<dynamic>(
-      Routes.productListView,
-      arguments: ProductListViewArguments(key: key),
-      id: routerId,
-      preventDuplicates: preventDuplicates,
-      parameters: parameters,
-      transition: transition,
-    );
-  }
-
-  Future<dynamic> replaceWithSplashView({
-    _i7.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-    transition,
-  }) async {
-    return replaceWith<dynamic>(
-      Routes.splashView,
-      arguments: SplashViewArguments(key: key),
+      Routes.productDetailsView,
+      arguments: ProductDetailsViewArguments(productId: productId, key: key),
       id: routerId,
       preventDuplicates: preventDuplicates,
       parameters: parameters,
@@ -264,7 +194,7 @@ extension NavigatorStateExtension on _i8.NavigationService {
   }
 
   Future<dynamic> replaceWithLoginView({
-    _i7.Key? key,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -282,7 +212,7 @@ extension NavigatorStateExtension on _i8.NavigationService {
   }
 
   Future<dynamic> replaceWithHomeView({
-    _i7.Key? key,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -299,8 +229,9 @@ extension NavigatorStateExtension on _i8.NavigationService {
     );
   }
 
-  Future<dynamic> replaceWithProductListView({
-    _i7.Key? key,
+  Future<dynamic> replaceWithProductDetailsView({
+    required int productId,
+    _i5.Key? key,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -308,8 +239,8 @@ extension NavigatorStateExtension on _i8.NavigationService {
     transition,
   }) async {
     return replaceWith<dynamic>(
-      Routes.productListView,
-      arguments: ProductListViewArguments(key: key),
+      Routes.productDetailsView,
+      arguments: ProductDetailsViewArguments(productId: productId, key: key),
       id: routerId,
       preventDuplicates: preventDuplicates,
       parameters: parameters,

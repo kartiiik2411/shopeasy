@@ -1,62 +1,49 @@
+import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../../../app/app.locator.dart';
 import '../../../app/app.router.dart';
-import '../../../domain/entities/auth_exception.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../domain/repositories/auth_repository.dart';
-import '../../../domain/use_cases/sign_in_with_google_use_case.dart';
+import '../../../domain/use_cases/login_use_case.dart';
 
 class LoginViewModel extends BaseViewModel {
   LoginViewModel({
-    SignInWithGoogleUseCase? signInWithGoogle,
+    LoginUseCase? loginUseCase,
     NavigationService? navigationService,
-  }) : _signInWithGoogle =
-           signInWithGoogle ??
-           SignInWithGoogleUseCase(locator<AuthRepository>()),
+  }) : _loginUseCase =
+           loginUseCase ?? LoginUseCase(locator<AuthRepository>()),
        _navigationService = navigationService ?? locator<NavigationService>();
 
-  final SignInWithGoogleUseCase _signInWithGoogle;
+  final LoginUseCase _loginUseCase;
   final NavigationService _navigationService;
+  final formKey = GlobalKey<FormState>();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
 
-  Future<void> signIn() async {
+  Future<String?> login() async {
     setBusy(true);
-    setError(null);
     try {
-      await _signInWithGoogle();
+      await _loginUseCase(
+        username: usernameController.text.trim(),
+        password: passwordController.text,
+      );
       await _navigationService.replaceWith(Routes.homeView);
-    } on AuthException catch (error) {
-      if (error.code == 'canceled' ||
-          error.code == 'popup-closed-by-user' ||
-          error.code == 'web-context-canceled') {
-        return;
-      }
-      setError(_messageFor(error));
+      return null;
+    } on ApiException catch (error) {
+      return error.message;
     } catch (error) {
-      setError(error.toString());
+      return 'Could not log in. Please check your connection and try again.';
     } finally {
       setBusy(false);
     }
   }
 
-  String _messageFor(AuthException error) {
-    final message = error.message.toUpperCase();
-    if (error.code == 'configuration-not-found' ||
-        error.code == 'missing-client-identifier' ||
-        error.code == 'clientConfigurationError' ||
-        error.code == 'providerConfigurationError' ||
-        message.contains('CONFIGURATION_NOT_FOUND')) {
-      return 'Google sign-in is not configured for this Firebase project. '
-          'Enable Google in Firebase Console under Authentication > '
-          'Sign-in method, set a support email, and download updated app '
-          'configuration files.';
-    }
-    if (error.code == 'operation-not-allowed') {
-      return 'Google sign-in is not enabled for this Firebase project yet.';
-    }
-    if (error.code == 'unauthorized-domain') {
-      return 'Add this website domain to Firebase Authentication authorized domains.';
-    }
-    return error.message;
+  @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

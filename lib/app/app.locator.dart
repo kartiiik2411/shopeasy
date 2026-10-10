@@ -10,8 +10,10 @@
 import 'package:stacked_services/src/navigation/navigation_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
-import '../data/repositories/firebase_auth_repository.dart';
+import '../data/repositories/dummy_json_auth_repository.dart';
+import '../data/repositories/dummy_json_product_repository.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/product_repository.dart';
 
 final locator = StackedLocator.instance;
 
@@ -26,6 +28,11 @@ Future<void> setupLocator({
   );
 
   // Register dependencies
-  locator.registerLazySingleton<AuthRepository>(() => FirebaseAuthRepository());
+  locator.registerLazySingleton<AuthRepository>(
+    () => DummyJsonAuthRepository(),
+  );
+  locator.registerLazySingleton<ProductRepository>(
+    () => DummyJsonProductRepository(),
+  );
   locator.registerLazySingleton(() => NavigationService());
 }

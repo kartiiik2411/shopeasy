@@ -3,6 +3,8 @@ import 'package:stacked/stacked.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../core/theme/app_size.dart';
+import '../../common/app_dialog.dart';
+import '../../common/app_text_field.dart';
 import 'login_viewmodel.dart';
 
 class LoginView extends StackedView<LoginViewModel> {
@@ -17,251 +19,135 @@ class LoginView extends StackedView<LoginViewModel> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSize.paddingXXXL,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSize.paddingXXXL),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Form(
+                key: viewModel.formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: AppSize.spaceXXL),
-                    const _BrandHeader(),
-                    const SizedBox(height: AppSize.spaceXXXL),
-                    const _ShoppingIllustration(),
-                    const SizedBox(height: AppSize.spaceXXL),
-                    const Text(
-                      'Good finds.\nDelivered easy.',
-                      style: TextStyle(
-                        color: AppColors.black,
-                        fontSize: AppSize.fontTitle + AppSize.paddingXS,
-                        height: 1.08,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.5,
+                    Container(
+                      alignment: Alignment.center,
+                      width: AppSize.imageS,
+                      height: AppSize.imageS,
+                      decoration: BoxDecoration(
+                        color: AppColors.illustrationBackground,
+                        borderRadius: BorderRadius.circular(AppSize.radiusL),
+                      ),
+                      child: const Icon(
+                        Icons.shopping_bag_rounded,
+                        color: AppColors.primaryPurple,
+                        size: AppSize.iconXXL,
                       ),
                     ),
-                    const SizedBox(height: AppSize.spaceM),
+                    const SizedBox(height: AppSize.spaceL),
                     const Text(
-                      'Sign in to discover everyday essentials and little things you’ll love.',
+                      'ShopEasy',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.black,
+                        fontSize: AppSize.fontTitle,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: AppSize.spaceS),
+                    const Text(
+                      'Sign in to find your next favorite.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: AppSize.fontL,
-                        height: 1.55,
                       ),
                     ),
+                    const SizedBox(height: AppSize.spaceXXL),
+                    AppTextField(
+                      controller: viewModel.usernameController,
+                      label: 'Username',
+                      hintText: 'Enter your username',
+                      prefixIcon: Icons.person_outline_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) =>
+                          value == null || value.trim().isEmpty
+                          ? 'Enter your username.'
+                          : null,
+                    ),
+                    const SizedBox(height: AppSize.spaceL),
+                    AppTextField(
+                      controller: viewModel.passwordController,
+                      label: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: Icons.lock_outline_rounded,
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Enter your password.'
+                          : null,
+                      onFieldSubmitted: (_) => _submit(context, viewModel),
+                    ),
                     const SizedBox(height: AppSize.spaceXL),
-                    if (viewModel.hasError) ...[
-                      _SignInError(message: viewModel.modelError.toString()),
-                      const SizedBox(height: AppSize.spaceM),
-                    ],
                     SizedBox(
-                      width: double.infinity,
                       height: AppSize.buttonHeightL,
-                      child: OutlinedButton(
-                        onPressed: viewModel.isBusy ? null : viewModel.signIn,
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: AppColors.white,
-                          foregroundColor: AppColors.black,
-                          side: const BorderSide(color: AppColors.border),
+                      child: FilledButton(
+                        onPressed: viewModel.isBusy
+                            ? null
+                            : () => _submit(context, viewModel),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primaryPurple,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
-                              AppSize.radiusL,
+                              AppSize.radiusM,
                             ),
                           ),
                         ),
                         child: viewModel.isBusy
                             ? const SizedBox(
-                                width: AppSize.iconM,
-                                height: AppSize.iconM,
+                                width: AppSize.iconS,
+                                height: AppSize.iconS,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: AppSize.paddingXS / 2,
-                                  color: AppColors.primaryPurple,
+                                  strokeWidth: 2,
+                                  color: AppColors.white,
                                 ),
                               )
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _GoogleMark(),
-                                  SizedBox(width: AppSize.spaceM),
-                                  Text(
-                                    'Choose a Google account',
-                                    style: TextStyle(
-                                      fontSize: AppSize.fontL,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
+                            : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: AppSize.fontL,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                       ),
                     ),
                     const SizedBox(height: AppSize.spaceL),
-                    const Center(
-                      child: Text(
-                        'Secure sign-in powered by Google.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: AppSize.fontS,
-                          height: 1.5,
-                        ),
+                    const Text(
+                      'Demo accounts: emilys / emilyspass · '
+                      'michaelw / michaelwpass · sophiab / sophiabpass',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: AppSize.fontS,
                       ),
                     ),
-                    const SizedBox(height: AppSize.spaceXL),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _submit(BuildContext context, LoginViewModel viewModel) async {
+    if (viewModel.formKey.currentState?.validate() != true) return;
+    final error = await viewModel.login();
+    if (error != null && context.mounted) {
+      await AppDialog.showError(context, error);
+    }
   }
 
   @override
   LoginViewModel viewModelBuilder(BuildContext context) => LoginViewModel();
-}
-
-class _BrandHeader extends StatelessWidget {
-  const _BrandHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: AppSize.iconXL,
-          height: AppSize.iconXL,
-          decoration: const BoxDecoration(
-            color: AppColors.illustrationBackground,
-            borderRadius: BorderRadius.all(
-              Radius.circular(AppSize.radiusM - AppSize.paddingXS / 4),
-            ),
-          ),
-          child: const Icon(
-            Icons.shopping_bag_rounded,
-            color: AppColors.primaryPurple,
-            size: AppSize.iconS,
-          ),
-        ),
-        const SizedBox(width: AppSize.paddingM - AppSize.paddingXS / 2),
-        const Text(
-          'ShopEasy',
-          style: TextStyle(
-            color: AppColors.black,
-            fontSize: AppSize.fontXXL,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ShoppingIllustration extends StatelessWidget {
-  const _ShoppingIllustration();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: AppSize.imageXL,
-        height: AppSize.imageXL,
-        decoration: BoxDecoration(
-          color: AppColors.illustrationBackground,
-          borderRadius: BorderRadius.circular(AppSize.radiusXXL),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: AppSize.imageL,
-              height: AppSize.imageL,
-              decoration: const BoxDecoration(
-                color: AppColors.illustrationCircle,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const Icon(
-              Icons.shopping_bag_rounded,
-              color: AppColors.primaryPurple,
-              size: AppSize.iconXXXL + AppSize.iconXXL,
-            ),
-            Positioned(
-              right: AppSize.paddingXXL,
-              top: AppSize.paddingXXL,
-              child: Container(
-                padding: const EdgeInsets.all(
-                  AppSize.paddingM - AppSize.paddingXS / 2,
-                ),
-                decoration: const BoxDecoration(
-                  color: AppColors.accentYellow,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: AppSize.iconS,
-                  color: AppColors.accentBrown,
-                ),
-              ),
-            ),
-            const Positioned(
-              left: AppSize.paddingXXL,
-              bottom: AppSize.paddingXXL,
-              child: Icon(
-                Icons.favorite_rounded,
-                color: AppColors.accentCoral,
-                size: AppSize.iconM,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GoogleMark extends StatelessWidget {
-  const _GoogleMark();
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'G',
-      style: TextStyle(
-        fontSize: AppSize.fontXXXL,
-        fontWeight: FontWeight.w800,
-        color: AppColors.googleBlue,
-        height: 1,
-      ),
-    );
-  }
-}
-
-class _SignInError extends StatelessWidget {
-  const _SignInError({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSize.paddingM),
-      decoration: BoxDecoration(
-        color: AppColors.errorBackground,
-        borderRadius: BorderRadius.circular(AppSize.radiusM),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: AppColors.errorText,
-          height: AppSize.paddingM / AppSize.paddingS,
-        ),
-      ),
-    );
-  }
 }
