@@ -1,92 +1,72 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shopeasy_app/app/app.router.dart';
-import 'package:shopeasy_app/core/network/api_exception.dart';
-import 'package:shopeasy_app/domain/entities/auth_user.dart';
-import 'package:shopeasy_app/domain/repositories/auth_repository.dart';
-import 'package:shopeasy_app/domain/use_cases/login_use_case.dart';
-import 'package:shopeasy_app/ui/views/login/login_viewmodel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'package:shopeasy_app/ui/views/login/login_viewmodel.dart';
+
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+
 void main() {
-  group('LoginViewModel.login', () {
-    test('uses credentials and navigates to the catalogue on success', () async {
-      final repository = _FakeAuthRepository();
-      final navigationService = _RecordingNavigationService();
-      final viewModel = LoginViewModel(
-        loginUseCase: LoginUseCase(repository),
-        navigationService: navigationService,
-      );
-      viewModel.usernameController.text = 'emilys';
-      viewModel.passwordController.text = 'emilyspass';
+  late MockFirebaseAuth mockAuth;
+  late LoginViewModel viewModel;
 
-      final error = await viewModel.login();
+  setUp(() {
+    mockAuth = MockFirebaseAuth();
 
-      expect(error, isNull);
-      expect(repository.username, 'emilys');
-      expect(repository.password, 'emilyspass');
-      expect(navigationService.replacedRoute, Routes.homeView);
-      expect(viewModel.isBusy, isFalse);
-      viewModel.dispose();
+    viewModel = LoginViewModel(
+      auth: mockAuth,
+      navigationService: NavigationService(),
+    );
+  });
+
+  tearDown(() {
+    viewModel.dispose();
+  });
+
+  group('LoginViewModel validation', () {
+    test('rejects an empty email', () {
+      expect(viewModel.validateEmail(''), 'Email is required.');
     });
 
-    test('returns API login errors for the error dialog', () async {
-      final viewModel = LoginViewModel(
-        loginUseCase: LoginUseCase(
-          _FakeAuthRepository(error: const ApiException('Invalid credentials')),
-        ),
-        navigationService: NavigationService(),
+    test('rejects an invalid email', () {
+      expect(
+        viewModel.validateEmail('invalid-email'),
+        'Enter a valid email address.',
       );
-      viewModel.usernameController.text = 'wrong';
-      viewModel.passwordController.text = 'wrong';
+    });
 
-      final error = await viewModel.login();
+    test('accepts a valid email', () {
+      expect(viewModel.validateEmail('user@example.com'), isNull);
+    });
 
-      expect(error, 'Invalid credentials');
-      expect(viewModel.isBusy, isFalse);
-      viewModel.dispose();
+    test('rejects an empty password', () {
+      expect(viewModel.validatePassword(''), 'Password is required.');
+    });
+
+    test('requires six characters during registration', () {
+      viewModel.isRegisterMode = true;
+
+      expect(
+        viewModel.validatePassword('123'),
+        'Password must contain at least 6 characters.',
+      );
+    });
+
+    test('toggles registration mode', () {
+      expect(viewModel.isRegisterMode, isFalse);
+
+      viewModel.toggleMode();
+
+      expect(viewModel.isRegisterMode, isTrue);
+    });
+
+    test('toggles password visibility', () {
+      expect(viewModel.obscurePassword, isTrue);
+
+      viewModel.togglePasswordVisibility();
+
+      expect(viewModel.obscurePassword, isFalse);
     });
   });
-}
-
-class _RecordingNavigationService extends NavigationService {
-  String? replacedRoute;
-
-  @override
-  Future<T?>? replaceWith<T>(
-    String routeName, {
-    dynamic arguments,
-    int? id,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    RouteTransitionsBuilder? transition,
-  }) {
-    replacedRoute = routeName;
-    return Future<T?>.value();
-  }
-}
-
-class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({this.error});
-
-  final Object? error;
-  String? username;
-  String? password;
-
-  @override
-  Future<AuthUser?> getCurrentUser() async => null;
-
-  @override
-  Future<AuthUser> login({
-    required String username,
-    required String password,
-  }) async {
-    if (error case final failure?) throw failure;
-    this.username = username;
-    this.password = password;
-    return const AuthUser(id: '1', email: 'emily@example.com');
-  }
-
-  @override
-  Future<void> signOut() async {}
 }

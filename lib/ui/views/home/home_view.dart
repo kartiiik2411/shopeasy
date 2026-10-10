@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../core/theme/app_color.dart';
-import '../../../core/theme/app_size.dart';
 import '../../../domain/entities/product.dart';
 import 'home_viewmodel.dart';
 
@@ -15,376 +14,221 @@ class HomeView extends StackedView<HomeViewModel> {
   }
 
   @override
+  HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
+
+  @override
   Widget builder(BuildContext context, HomeViewModel viewModel, Widget? child) {
-    final displayName = viewModel.user?.displayName;
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
-            Text(
-              switch (viewModel.selectedNavigationIndex) {
-                1 => 'Categories',
-                2 => 'Your Cart',
-                3 => 'Profile',
-                _ =>
-                  displayName == null || displayName.isEmpty
-                      ? 'ShopEasy'
-                      : 'Hi, $displayName',
-              },
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.black,
-                fontSize: AppSize.fontXXL,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (viewModel.selectedNavigationIndex == 0)
-              const Text(
-                'Discover your next favorite',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: AppSize.fontS,
-                ),
-              ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSize.spaceXXL)),
+            _HomeHeader(viewModel: viewModel),
+            Expanded(child: _buildBody(viewModel)),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: viewModel.isSigningOut ? null : viewModel.signOut,
-            icon: viewModel.isSigningOut
-                ? const SizedBox(
-                    width: AppSize.iconS,
-                    height: AppSize.iconS,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.logout_rounded),
-          ),
-        ],
       ),
-      body: _buildDestination(viewModel),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: viewModel.selectedNavigationIndex,
-        onTap: viewModel.selectDestination,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryPurple,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
-            activeIcon: Icon(Icons.category_rounded),
-            label: 'Category',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart_rounded),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: _BottomNavigation(
+        selectedIndex: viewModel.selectedNavigationIndex,
+        onSelected: viewModel.selectDestination,
       ),
     );
   }
 
-  Widget _buildDestination(HomeViewModel viewModel) {
-    return switch (viewModel.selectedNavigationIndex) {
-      1 => _buildCategories(viewModel),
-      2 => _buildCart(),
-      3 => _buildProfile(viewModel),
-      _ => _buildHome(viewModel),
-    };
+  Widget _buildBody(HomeViewModel viewModel) {
+    switch (viewModel.selectedNavigationIndex) {
+      case 1:
+        return _CategoriesPage(viewModel: viewModel);
+      case 2:
+        return const _EmptyPage(
+          icon: Icons.favorite_border_rounded,
+          title: 'Your Wishlist',
+          subtitle: 'Products you save will appear here.',
+        );
+      case 3:
+        return const _EmptyPage(
+          icon: Icons.shopping_cart_outlined,
+          title: 'Your Cart',
+          subtitle: 'Add products you love to your cart.',
+        );
+      case 4:
+        return _ProfilePage(viewModel: viewModel);
+      default:
+        return _HomeContent(viewModel: viewModel);
+    }
   }
+}
 
-  Widget _buildHome(HomeViewModel viewModel) {
-    return Column(
-      children: [
-        if (viewModel.accountError != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSize.paddingL,
-              AppSize.paddingS,
-              AppSize.paddingL,
-              0,
-            ),
-            child: Text(
-              'Could not load your account details: ${viewModel.accountError}',
-              style: const TextStyle(color: AppColors.errorText),
-            ),
+// -----------------------------------------------------------------------------
+// Header and search
+// -----------------------------------------------------------------------------
+
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader({required this.viewModel});
+
+  final HomeViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = viewModel.user?.displayName?.trim();
+    final greetingName = name == null || name.isEmpty
+        ? 'ShopEasy Customer'
+        : name;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+      decoration: const BoxDecoration(
+        color: AppColors.primaryPurple,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Welcome to ShopEasy,',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      greetingName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const CircleAvatar(
+                backgroundColor: Colors.white24,
+                child: Icon(Icons.shopping_bag_outlined, color: Colors.white),
+              ),
+            ],
           ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSize.paddingL,
-            AppSize.paddingS,
-            AppSize.paddingL,
-            AppSize.paddingM,
-          ),
-          child: TextField(
+          const SizedBox(height: 20),
+          TextField(
             onChanged: viewModel.search,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Search products...',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: viewModel.searchQuery.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      onPressed: () => viewModel.search(''),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
               filled: true,
-              fillColor: AppColors.white,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppSize.radiusM),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
               ),
             ),
           ),
-        ),
-        if (viewModel.categoriesError != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSize.paddingL),
-            child: Text(
-              'Could not load categories: ${viewModel.categoriesError}',
-              style: const TextStyle(color: AppColors.errorText),
-            ),
-          )
-        else if (viewModel.categories.isNotEmpty)
-          SizedBox(
-            height: AppSize.buttonHeightS,
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSize.paddingL),
-              scrollDirection: Axis.horizontal,
-              children: [
-                _CategoryChip(
-                  label: 'All',
-                  selected: viewModel.selectedCategory == null,
-                  onSelected: () => viewModel.selectCategory(null),
-                ),
-                ...viewModel.categories.map(
-                  (category) => _CategoryChip(
-                    label: _prettyCategory(category),
-                    selected: viewModel.selectedCategory == category,
-                    onSelected: () => viewModel.selectCategory(category),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        const SizedBox(height: AppSize.spaceS),
-        Expanded(
-          child: _ProductContent(
-            products: viewModel.products,
-            isBusy: viewModel.isBusy || viewModel.isLoadingProducts,
-            error: viewModel.productsError,
-            onRetry: viewModel.loadProducts,
-            onProductTap: viewModel.openProduct,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategories(HomeViewModel viewModel) {
-    if (viewModel.categoriesError != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSize.paddingL),
-          child: Text(
-            'Could not load categories: ${viewModel.categoriesError}',
-            style: const TextStyle(color: AppColors.errorText),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-    if (viewModel.categories.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(AppSize.paddingL),
-      children: [
-        _CategoryTile(
-          label: 'All Products',
-          icon: Icons.storefront_outlined,
-          onTap: () => viewModel.selectCategoryFromCategories(null),
-        ),
-        ...viewModel.categories.map(
-          (category) => _CategoryTile(
-            label: _prettyCategory(category),
-            icon: _categoryIcon(category),
-            onTap: () => viewModel.selectCategoryFromCategories(category),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCart() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(AppSize.paddingXXL),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              color: AppColors.primaryPurple,
-              size: AppSize.iconXXXL,
-            ),
-            SizedBox(height: AppSize.spaceL),
-            Text(
-              'Your cart is empty',
-              style: TextStyle(
-                color: AppColors.black,
-                fontSize: AppSize.fontXL,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: AppSize.spaceS),
-            Text(
-              'Add products you love and they will appear here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
-
-  Widget _buildProfile(HomeViewModel viewModel) {
-    final user = viewModel.user;
-    final displayName = user?.displayName;
-    return ListView(
-      padding: const EdgeInsets.all(AppSize.paddingL),
-      children: [
-        CircleAvatar(
-          radius: AppSize.imageS,
-          backgroundColor: AppColors.illustrationBackground,
-          backgroundImage: user?.photoUrl == null
-              ? null
-              : NetworkImage(user!.photoUrl!),
-          child: user?.photoUrl == null
-              ? const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primaryPurple,
-                  size: AppSize.iconXXL,
-                )
-              : null,
-        ),
-        const SizedBox(height: AppSize.spaceM),
-        Center(
-          child: Text(
-            displayName == null || displayName.isEmpty
-                ? 'ShopEasy Customer'
-                : displayName,
-            style: const TextStyle(
-              color: AppColors.black,
-              fontSize: AppSize.fontXL,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        if (user != null) ...[
-          const SizedBox(height: AppSize.spaceS),
-          Center(
-            child: Text(
-              user.email,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-          ),
-        ],
-        if (viewModel.accountError != null) ...[
-          const SizedBox(height: AppSize.spaceM),
-          Text(
-            'Could not load your account details: ${viewModel.accountError}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.errorText),
-          ),
-        ],
-        const SizedBox(height: AppSize.spaceXXL),
-        OutlinedButton.icon(
-          onPressed: viewModel.isSigningOut ? null : viewModel.signOut,
-          icon: viewModel.isSigningOut
-              ? const SizedBox(
-                  width: AppSize.iconS,
-                  height: AppSize.iconS,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.logout_rounded),
-          label: const Text('Sign out'),
-        ),
-      ],
-    );
-  }
-
-  IconData _categoryIcon(String category) {
-    if (category.contains('beauty')) return Icons.spa_outlined;
-    if (category.contains('fragrance')) return Icons.air_outlined;
-    if (category.contains('furniture')) return Icons.chair_outlined;
-    if (category.contains('laptop') || category.contains('smartphone')) {
-      return Icons.devices_outlined;
-    }
-    return Icons.sell_outlined;
-  }
-
-  String _prettyCategory(String category) => category
-      .split('-')
-      .map(
-        (word) => word.isEmpty
-            ? word
-            : '${word[0].toUpperCase()}${word.substring(1)}',
-      )
-      .join(' ');
-
-  @override
-  HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
 }
 
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
+// -----------------------------------------------------------------------------
+// Home content
+// -----------------------------------------------------------------------------
 
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
+class _HomeContent extends StatelessWidget {
+  const _HomeContent({required this.viewModel});
+
+  final HomeViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.white,
-      elevation: AppSize.elevationS,
-      margin: const EdgeInsets.only(bottom: AppSize.paddingM),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSize.radiusM),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.primaryPurple),
-        title: Text(label),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Find your favourites',
+            style: TextStyle(
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+              color: AppColors.black,
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _CategorySection(viewModel: viewModel),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            viewModel.selectedCategory == null
+                ? 'Trending Products'
+                : 'Filtered Products',
+            style: const TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+              color: AppColors.black,
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        _ProductSection(viewModel: viewModel),
+      ],
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Categories
+// -----------------------------------------------------------------------------
+
+class _CategorySection extends StatelessWidget {
+  const _CategorySection({required this.viewModel});
+
+  final HomeViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _CategoryChip(
+            label: 'All',
+            selected: viewModel.selectedCategory == null,
+            onTap: () => viewModel.selectCategory(null),
+          ),
+          ...viewModel.categories.map(
+            (category) => _CategoryChip(
+              label: _formatCategory(category),
+              selected: viewModel.selectedCategory == category,
+              onTap: () => viewModel.selectCategory(category),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _formatCategory(String value) {
+    return value
+        .split('-')
+        .map(
+          (word) => word.isEmpty
+              ? word
+              : '${word[0].toUpperCase()}${word.substring(1)}',
+        )
+        .join(' ');
   }
 }
 
@@ -392,194 +236,347 @@ class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
     required this.label,
     required this.selected,
-    required this.onSelected,
+    required this.onTap,
   });
 
   final String label;
   final bool selected;
-  final VoidCallback onSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: AppSize.paddingS),
+      padding: const EdgeInsets.only(right: 10),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
-        onSelected: (_) => onSelected(),
+        onSelected: (_) => onTap(),
         selectedColor: AppColors.primaryPurple,
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.white,
         labelStyle: TextStyle(
-          color: selected ? AppColors.white : AppColors.black,
-          fontSize: AppSize.fontS,
+          color: selected ? Colors.white : AppColors.black,
           fontWeight: FontWeight.w600,
         ),
+        side: BorderSide.none,
       ),
     );
   }
 }
 
-class _ProductContent extends StatelessWidget {
-  const _ProductContent({
-    required this.products,
-    required this.isBusy,
-    required this.error,
-    required this.onRetry,
-    required this.onProductTap,
-  });
+// -----------------------------------------------------------------------------
+// Products
+// -----------------------------------------------------------------------------
 
-  final List<Product> products;
-  final bool isBusy;
-  final String? error;
-  final VoidCallback onRetry;
-  final ValueChanged<Product> onProductTap;
+class _ProductSection extends StatelessWidget {
+  const _ProductSection({required this.viewModel});
+
+  final HomeViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
-    if (isBusy && products.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (error != null && products.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSize.paddingXXL),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(error!, textAlign: TextAlign.center),
-              const SizedBox(height: AppSize.spaceL),
-              FilledButton(onPressed: onRetry, child: const Text('Try again')),
-            ],
-          ),
-        ),
+    if (viewModel.isLoadingProducts && viewModel.products.isEmpty) {
+      return const SizedBox(
+        height: 240,
+        child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (products.isEmpty) {
-      return const Center(child: Text('No products found.'));
+
+    if (viewModel.products.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: Text('No products found.')),
+      );
     }
 
-    return Stack(
-      children: [
-        GridView.builder(
-          padding: const EdgeInsets.all(AppSize.paddingL),
-          itemCount: products.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: AppSize.paddingM,
-            mainAxisSpacing: AppSize.paddingM,
-            childAspectRatio: 0.68,
-          ),
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return _ProductCard(
-              product: product,
-              onTap: () => onProductTap(product),
-            );
-          },
-        ),
-        if (error != null)
-          Positioned(
-            left: AppSize.paddingL,
-            right: AppSize.paddingL,
-            top: AppSize.paddingS,
-            child: Material(
-              color: AppColors.errorBackground,
-              borderRadius: BorderRadius.circular(AppSize.radiusS),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSize.paddingS),
-                child: Text(
-                  'Refresh failed: $error',
-                  style: const TextStyle(color: AppColors.errorText),
-                ),
-              ),
-            ),
-          ),
-        if (isBusy)
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: LinearProgressIndicator(),
-          ),
-      ],
+    return SizedBox(
+      height: 285,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        scrollDirection: Axis.horizontal,
+        itemCount: viewModel.products.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final product = viewModel.products[index];
+
+          return SizedBox(width: 190, child: _ProductCard(product: product));
+        },
+      ),
     );
   }
 }
 
 class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product, required this.onTap});
+  const _ProductCard({required this.product});
 
   final Product product;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
       color: AppColors.white,
-      elevation: AppSize.elevationS,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSize.radiusM),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SizedBox(
-                width: double.infinity,
-                child: Image.network(
-                  product.thumbnail,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.image_not_supported)),
-                ),
+      elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              color: const Color(0xFFF7F7FA),
+              padding: const EdgeInsets.all(10),
+              child: Image.network(
+                product.thumbnail,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) {
+                  return const Center(
+                    child: Icon(Icons.image_not_supported_outlined, size: 36),
+                  );
+                },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(AppSize.paddingM),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.black,
-                      fontSize: AppSize.fontM,
-                      fontWeight: FontWeight.w600,
-                    ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black,
                   ),
-                  const SizedBox(height: AppSize.spaceS),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '\$${product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontSize: AppSize.fontL,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.star_rounded,
-                        color: AppColors.accentYellow,
-                        size: AppSize.iconS,
-                      ),
-                      Text(
-                        product.rating.toStringAsFixed(1),
-                        style: const TextStyle(fontSize: AppSize.fontS),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '\$${product.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryPurple,
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Categories page
+// -----------------------------------------------------------------------------
+
+class _CategoriesPage extends StatelessWidget {
+  const _CategoriesPage({required this.viewModel});
+
+  final HomeViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        ListTile(
+          leading: const Icon(Icons.storefront_outlined),
+          title: const Text('All Products'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => viewModel.selectCategoryFromCategories(null),
+        ),
+        ...viewModel.categories.map(
+          (category) => ListTile(
+            leading: const Icon(Icons.category_outlined),
+            title: Text(category),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => viewModel.selectCategoryFromCategories(category),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Profile page
+// -----------------------------------------------------------------------------
+
+class _ProfilePage extends StatelessWidget {
+  const _ProfilePage({required this.viewModel});
+
+  final HomeViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = viewModel.user;
+    final displayName = user?.displayName;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircleAvatar(
+              radius: 38,
+              backgroundColor: Color(0xFFEDE7F6),
+              child: Icon(
+                Icons.person_rounded,
+                size: 42,
+                color: AppColors.primaryPurple,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              displayName?.isNotEmpty == true
+                  ? displayName!
+                  : 'ShopEasy Customer',
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+            ),
+            if (user != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                user.email,
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+            ],
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: viewModel.isSigningOut ? null : viewModel.signOut,
+              icon: const Icon(Icons.logout_rounded),
+              label: Text(
+                viewModel.isSigningOut ? 'Signing out...' : 'Sign out',
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Wishlist and cart placeholders
+// -----------------------------------------------------------------------------
+
+class _EmptyPage extends StatelessWidget {
+  const _EmptyPage({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 60, color: AppColors.primaryPurple),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Bottom navigation
+// -----------------------------------------------------------------------------
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation({
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  static const _items = [
+    (Icons.home_outlined, Icons.home_rounded, 'Home'),
+    (Icons.grid_view_outlined, Icons.grid_view_rounded, 'Categories'),
+    (Icons.favorite_border_rounded, Icons.favorite_rounded, 'Wishlist'),
+    (Icons.shopping_cart_outlined, Icons.shopping_cart_rounded, 'Cart'),
+    (Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: List.generate(_items.length, (index) {
+            final item = _items[index];
+            final selected = selectedIndex == index;
+
+            return Expanded(
+              child: InkWell(
+                onTap: () => onSelected(index),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        selected ? item.$2 : item.$1,
+                        color: selected
+                            ? AppColors.primaryPurple
+                            : AppColors.textSecondary,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.$3,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: selected
+                              ? AppColors.primaryPurple
+                              : AppColors.textSecondary,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ),
       ),
     );

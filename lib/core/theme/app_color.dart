@@ -3,38 +3,40 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color primaryPurple = Color(0xFF7B2FF7);
-  static const Color secondaryPurple = Color(0xFF9D50BB);
-  static const Color primaryPink = Color(0xFFFF6CAB);
-  static const Color lightPink = Color(0xFFFF8CC6);
+  // Brand colors
+  static const Color primaryPurple = Color(0xFF6750A4);
+  static const Color lightPurple = Color(0xFFEDE7F6);
+  static const Color darkPurple = Color(0xFF4A3685);
 
-  static const Color background = Color(0xFFF8F5FF);
-  static const Color white = Colors.white;
-  static const Color black = Color(0xFF1F1F1F);
-  static const Color grey = Color(0xFF808080);
+  // Accent colors
+  static const Color amber = Color(0xFFF5B84B);
+  static const Color coral = Color(0xFFE65366);
 
-  static const Color textSecondary = Color(0xFF6E6875);
-  static const Color textTertiary = Color(0xFF8A8490);
-  static const Color border = Color(0xFFE8E1EE);
-  static const Color illustrationBackground = Color(0xFFEDE3FA);
-  static const Color illustrationCircle = Color(0xFFDCCAF3);
-  static const Color accentYellow = Color(0xFFFFD580);
-  static const Color accentBrown = Color(0xFF7A4C12);
-  static const Color accentCoral = Color(0xFFE88B78);
-  static const Color errorBackground = Color(0xFFFFECE8);
-  static const Color errorText = Color(0xFF9E3D2E);
-  static const Color googleBlue = Color(0xFF4285F4);
-  static const Color primaryPurpleShadow = Color(0x267B2FF7);
+  // Background colors
+  static const Color background = Color(0xFFF8F7FC);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFFFFFFFF);
 
-  static const LinearGradient purplePinkGradient = LinearGradient(
-    colors: [primaryPurple, secondaryPurple, primaryPink],
+  // Text colors
+  static const Color black = Color(0xFF201A2C);
+  static const Color textPrimary = Color(0xFF201A2C);
+  static const Color textSecondary = Color(0xFF716B7C);
+  static const Color hintText = Color(0xFF9A94A5);
+
+  // Border and divider
+  static const Color border = Color(0xFFE9E5F0);
+  static const Color divider = Color(0xFFE9E5F0);
+
+  // Status colors
+  static const Color success = Color(0xFF2E7D32);
+  static const Color error = Color(0xFFE53935);
+  static const Color warning = Color(0xFFF5B84B);
+  static const Color info = Color(0xFF1976D2);
+
+  // Gradients
+  static const LinearGradient buttonGradient = LinearGradient(
+    colors: [primaryPurple, darkPurple],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient buttonGradient = LinearGradient(
-    colors: [primaryPurple, primaryPink],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
   );
 }
