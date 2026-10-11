@@ -4,9 +4,12 @@ class AppColors {
   AppColors._();
 
   static const Color primaryPurple = Color(0xFF7B2FF7);
+  static const Color lightPurple = Color(0xFFEDE7F6);
   static const Color secondaryPurple = Color.fromARGB(255, 120, 181, 230);
   static const Color primaryPink = Color(0xFFFF6CAB);
   static const Color lightPink = Color(0xFFFF8CC6);
+  static const Color coral = Color(0xFFE65366);
+  static const Color amber = Color(0xFFF5B84B);
 
   static const Color background = Color(0xFFF8F5FF);
   static const Color white = Colors.white;

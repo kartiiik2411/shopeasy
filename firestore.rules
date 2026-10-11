@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /addresses/{userId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      function hasValidAddressFields() {
+        return request.resource.data.keys().hasAll([
+              'fullName',
+              'phone',
+              'addressLine1',
+              'addressLine2',
+              'city',
+              'state',
+              'postalCode',
+              'country',
+              'latitude',
+              'longitude',
+              'updatedAt'
+            ]) &&
+            request.resource.data.keys().hasOnly([
+              'fullName',
+              'phone',
+              'addressLine1',
+              'addressLine2',
+              'city',
+              'state',
+              'postalCode',
+              'country',
+              'latitude',
+              'longitude',
+              'updatedAt'
+            ]) &&
+            request.resource.data.fullName is string &&
+            request.resource.data.phone is string &&
+            request.resource.data.addressLine1 is string &&
+            request.resource.data.addressLine2 is string &&
+            request.resource.data.city is string &&
+            request.resource.data.state is string &&
+            request.resource.data.postalCode is string &&
+            request.resource.data.country is string &&
+            request.resource.data.updatedAt is timestamp &&
+            (request.resource.data.latitude == null ||
+                request.resource.data.latitude is number) &&
+            (request.resource.data.longitude == null ||
+                request.resource.data.longitude is number);
+      }
+
+      allow read: if isOwner();
+      allow create, update: if isOwner() && hasValidAddressFields();
+      allow delete: if isOwner();
+    }
+  }
+}
