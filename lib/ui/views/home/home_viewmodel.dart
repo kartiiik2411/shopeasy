@@ -2,6 +2,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../../../app/app.locator.dart';
+import '../../../app/app.router.dart';
 import '../../../domain/entities/auth_user.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -53,6 +54,8 @@ class HomeViewModel extends BaseViewModel {
       user = await _getCurrentUser();
       categories = await _getCategories();
       await loadProducts();
+    } catch (error) {
+      setError(error);
     } finally {
       setBusy(false);
     }
@@ -81,6 +84,14 @@ class HomeViewModel extends BaseViewModel {
 
     selectedNavigationIndex = index;
     notifyListeners();
+
+    // Add navigation for other bottom-navigation destinations
+    // when their routes and views are implemented.
+  }
+
+  /// Opens the Product Details screen.
+  void openProductDetails() {
+    _navigationService.navigateTo(const ProductDetailsViewRoute());
   }
 
   Future<void> loadProducts() async {
@@ -92,6 +103,8 @@ class HomeViewModel extends BaseViewModel {
         query: searchQuery,
         category: selectedCategory,
       );
+    } catch (error) {
+      setError(error);
     } finally {
       isLoadingProducts = false;
       notifyListeners();
@@ -106,7 +119,10 @@ class HomeViewModel extends BaseViewModel {
 
     try {
       await _signOut();
-      await _navigationService.replaceWith('/login');
+
+      await _navigationService.replaceWith(const LoginViewRoute());
+    } catch (error) {
+      setError(error);
     } finally {
       isSigningOut = false;
       notifyListeners();

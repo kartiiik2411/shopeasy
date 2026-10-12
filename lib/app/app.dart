@@ -7,7 +7,6 @@ import 'package:shopeasy_app/ui/views/login/login_view.dart';
 import 'package:shopeasy_app/ui/views/onboarding/onboarding_view.dart';
 import 'package:shopeasy_app/ui/views/product_details/product_details_view.dart';
 import 'package:shopeasy_app/ui/views/splash/splash_view.dart';
-import 'package:shopeasy_app/ui/views/wishlist/wishlist_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -17,7 +16,7 @@ import 'package:stacked_services/stacked_services.dart';
     MaterialRoute(page: OnboardingView),
     MaterialRoute(page: LoginView),
     MaterialRoute(page: HomeView),
-    MaterialRoute(page: WishlistView),
+    // MaterialRoute(page: WishlistView),
     MaterialRoute(page: ProductDetailsView),
   ],
   dependencies: [
