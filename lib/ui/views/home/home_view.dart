@@ -1685,19 +1685,24 @@ class _ProfilePage extends StatelessWidget {
         _ProfileQuickAction(
           icon: Icons.notifications_active_outlined,
           label: 'Test Notification',
-          onTap: () async {
-            try {
-              await viewModel.testNotification();
+          
+onTap: () async {
+  try {
+    await viewModel.testNotification();
 
-              if (context.mounted) {
-                _showMessage(context, 'Test notification triggered.');
-              }
-            } catch (error) {
-              if (context.mounted) {
-                _showMessage(context, 'Notification failed: $error');
-              }
-            }
-          },
+    if (!context.mounted) return;
+
+    _showMessage(context, 'Test notification triggered.');
+  } catch (error) {
+    if (!context.mounted) return;
+
+    _showMessage(
+      context,
+      'Test notification failed: $error',
+    );
+  }
+},
+
         ),
 
         const SizedBox(height: 12),
@@ -2216,24 +2221,27 @@ class _SettingsPageState extends State<_SettingsPage> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: OutlinedButton.icon(
               onPressed: (_settings['push_notifications'] ?? false)
-                  ? () async {
-                      try {
-                        await NotificationService.instance
-                            .sendTestNotification();
+                 
+? () async {
+    try {
+      await NotificationService.instance.sendTestNotification();
 
-                        if (!mounted) return;
+      if (!context.mounted) return;
 
-                        _showMessage(context, 'Test notification triggered.');
-                      } catch (error) {
-                        if (!mounted) return;
+      _showMessage(context, 'Test notification triggered.');
+    } catch (error) {
+      if (!context.mounted) return;
 
-                        _showMessage(
-                          context,
-                          'Test notification failed: $error',
-                        );
-                      }
-                    }
-                  : null,
+      _showMessage(
+        context,
+        'Test notification failed: $error',
+      );
+    }
+  }
+: null,
+
+                    
+                 
               icon: const Icon(Icons.notifications_active_outlined),
               label: const Text('Send test notification'),
             ),

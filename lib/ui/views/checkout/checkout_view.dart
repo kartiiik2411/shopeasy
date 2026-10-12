@@ -768,8 +768,8 @@ class CheckoutView extends StatelessWidget {
 
                         fit: BoxFit.contain,
 
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.image_not_supported_outlined),
+                       errorBuilder: (context, error, stackTrace) =>
+    const Icon(Icons.image_not_supported_outlined),
                       ),
                     ),
                   ),
