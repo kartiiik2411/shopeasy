@@ -19,6 +19,12 @@ Demo login: `emilys` / `emilyspass`.
 - `lib/core/network/`: `ApiConstants`, `ApiService`, and API errors.
 - `lib/domain/`: Entities, repository contracts, and use cases.
 - `lib/data/`: DummyJSON-backed authentication and product repositories.
+- Startup checks for a persisted Firebase sign-in token and opens the home
+  screen or sign-in screen after the splash screen.
+- Product browsing includes category images, sort/category/gender/filter
+  controls, voice search, and camera capture. Camera capture is not visual
+  product search because the current DummyJSON catalogue has no image-search
+  endpoint.
 
 Routes and dependencies are generated from `lib/app/app.dart` using
 `dart run build_runner build`.

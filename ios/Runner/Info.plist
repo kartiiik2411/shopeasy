@@ -28,6 +28,12 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location can be used to suggest a delivery address when you choose current location.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ShopEasy uses the camera when you choose camera search.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ShopEasy uses the microphone for voice search.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ShopEasy converts your voice search into product search text.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -156,9 +156,35 @@ class _HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              const CircleAvatar(
-                backgroundColor: Colors.white24,
-                child: Icon(Icons.shopping_bag_outlined, color: Colors.white),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Open cart',
+                    onPressed: () => viewModel.selectDestination(3),
+                    icon: const Icon(
+                      Icons.shopping_cart_outlined,
+                      color: Colors.white,
+                    ),
+                  ),
+                  if (viewModel.cartProducts.isNotEmpty)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: CircleAvatar(
+                        radius: 9,
+                        backgroundColor: AppColors.coral,
+                        child: Text(
+                          '${viewModel.cartProducts.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -170,13 +196,62 @@ class _HomeHeader extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Search products...',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: viewModel.searchController.text.isEmpty
-                  ? null
-                  : IconButton(
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: viewModel.isListeningForSearch
+                        ? 'Stop voice search'
+                        : 'Search by voice',
+                    onPressed: () async {
+                      try {
+                        await viewModel.toggleVoiceSearch();
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$error')),
+                          );
+                        }
+                      }
+                    },
+                    icon: Icon(
+                      viewModel.isListeningForSearch
+                          ? Icons.mic
+                          : Icons.mic_none_outlined,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Search with camera',
+                    onPressed: () async {
+                      try {
+                        final image = await viewModel.captureSearchImage();
+                        if (context.mounted && image != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Photo captured: ${image.name}. Visual product matching is not supported by the current catalogue API.',
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Could not open camera: $error')),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt_outlined),
+                  ),
+                  if (viewModel.searchController.text.isNotEmpty)
+                    IconButton(
                       tooltip: 'Clear search',
                       onPressed: viewModel.clearSearch,
                       icon: const Icon(Icons.close_rounded),
                     ),
+                ],
+              ),
               filled: true,
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -221,6 +296,8 @@ class _HomeContent extends StatelessWidget {
         _CategorySection(viewModel: viewModel),
         const SizedBox(height: 18),
         const _PromoSlider(),
+        const SizedBox(height: 14),
+        _BrowseControls(viewModel: viewModel),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -253,26 +330,53 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          _CategoryChip(
-            label: 'All',
-            selected: viewModel.selectedCategory == null,
-            onTap: () => viewModel.selectCategory(null),
+    final categories = viewModel.categories.take(8).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Popular',
+                  style: TextStyle(
+                    color: AppColors.black,
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => viewModel.selectDestination(1),
+                child: const Text('See all'),
+              ),
+            ],
           ),
-          ...viewModel.categories.map(
-            (category) => _CategoryChip(
-              label: _formatCategory(category),
-              selected: viewModel.selectedCategory == category,
-              onTap: () => viewModel.selectCategory(category),
-            ),
+        ),
+        SizedBox(
+          height: 104,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              _PopularCategoryCard(
+                label: 'Popular',
+                imageUrl: _categoryImageUrl(null),
+                onTap: () => viewModel.openCategory(null),
+              ),
+              ...categories.map(
+                (category) => _PopularCategoryCard(
+                    label: _formatCategory(category),
+                  imageUrl: _categoryImageUrl(category),
+                  onTap: () => viewModel.openCategory(category),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -288,33 +392,212 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
+class _PopularCategoryCard extends StatelessWidget {
+  const _PopularCategoryCard({
     required this.label,
-    required this.selected,
+    required this.imageUrl,
     required this.onTap,
   });
 
   final String label;
-  final bool selected;
+  final String imageUrl;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        showCheckmark: false,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primaryPurple,
-        backgroundColor: Colors.white,
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : AppColors.black,
-          fontWeight: FontWeight.w600,
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: SizedBox(
+          width: 78,
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.network(
+                  imageUrl,
+                  width: 68,
+                  height: 68,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Container(
+                    width: 68,
+                    height: 68,
+                    color: AppColors.lightPurple,
+                    child: const Icon(
+                      Icons.category_outlined,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
-        side: BorderSide.none,
+      ),
+    );
+  }
+}
+
+class _BrowseControls extends StatelessWidget {
+  const _BrowseControls({required this.viewModel});
+
+  final HomeViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          _BrowseButton(
+            icon: Icons.swap_vert,
+            label: viewModel.sortOption,
+            onTap: () => _showOptions(
+              context,
+              title: 'Sort products',
+              options: const [
+                'Popular',
+                'Price: low to high',
+                'Price: high to low',
+                'Top rated',
+              ],
+              selected: viewModel.sortOption,
+              onSelected: viewModel.setSortOption,
+            ),
+          ),
+          _BrowseButton(
+            icon: Icons.category_outlined,
+            label: 'Category',
+            onTap: () => viewModel.openCategory(viewModel.selectedCategory),
+          ),
+          _BrowseButton(
+            icon: Icons.people_outline,
+            label: viewModel.selectedGender,
+            onTap: () => _showOptions(
+              context,
+              title: 'Shop by gender',
+              options: const ['All', 'Men', 'Women'],
+              selected: viewModel.selectedGender,
+              onSelected: viewModel.setGender,
+            ),
+          ),
+          _BrowseButton(
+            icon: Icons.tune,
+            label: viewModel.discountedOnly || viewModel.minimumRating > 0
+                ? 'Filters •'
+                : 'Filters',
+            onTap: () => _showOptions(
+              context,
+              title: 'Filter products',
+              options: const [
+                'All products',
+                'On sale',
+                'Rated 4.0+',
+                'Clear filters',
+              ],
+              selected: '',
+              onSelected: (option) {
+                switch (option) {
+                  case 'On sale':
+                    viewModel.setDiscountedOnly(true);
+                    viewModel.setMinimumRating(0);
+                  case 'Rated 4.0+':
+                    viewModel.setDiscountedOnly(false);
+                    viewModel.setMinimumRating(4);
+                  case 'Clear filters':
+                  case 'All products':
+                    viewModel.setDiscountedOnly(false);
+                    viewModel.setMinimumRating(0);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showOptions(
+    BuildContext context, {
+    required String title,
+    required List<String> options,
+    required String selected,
+    required ValueChanged<String> onSelected,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ...options.map(
+              (option) => ListTile(
+                title: Text(option),
+                trailing: option == selected
+                    ? const Icon(Icons.check, color: AppColors.primaryPurple)
+                    : null,
+                onTap: () {
+                  onSelected(option);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BrowseButton extends StatelessWidget {
+  const _BrowseButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 17),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.black,
+          side: const BorderSide(color: AppColors.border),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
       ),
     );
   }
@@ -571,14 +854,14 @@ class _ProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (viewModel.isLoadingProducts && viewModel.products.isEmpty) {
+    if (viewModel.isLoadingProducts && viewModel.visibleProducts.isEmpty) {
       return const SizedBox(
         height: 240,
         child: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (viewModel.products.isEmpty) {
+    if (viewModel.visibleProducts.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(20),
         child: Center(child: Text('No products found.')),
@@ -595,9 +878,9 @@ class _ProductSection extends StatelessWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 0.66,
       ),
-      itemCount: viewModel.products.length,
+      itemCount: viewModel.visibleProducts.length,
       itemBuilder: (context, index) => _ProductCard(
-        product: viewModel.products[index],
+        product: viewModel.visibleProducts[index],
         viewModel: viewModel,
       ),
     );
@@ -751,7 +1034,7 @@ class _CategoriesPage extends StatelessWidget {
             child: ListView(
               children: [
                 _CategoryRailItem(
-                  title: 'All Products',
+                  title: 'Popular',
                   imageUrl: _categoryImageUrl(null),
                   selected: viewModel.selectedCategory == null,
                   onTap: () => viewModel.selectCategory(null),
@@ -777,7 +1060,7 @@ class _CategoriesPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 18, 12, 12),
                 child: Text(
                   selectedCategory == null
-                      ? 'All Products'
+                      ? 'Popular'
                       : _formatCategory(selectedCategory),
                   style: const TextStyle(
                     color: AppColors.black,
@@ -789,7 +1072,7 @@ class _CategoriesPage extends StatelessWidget {
               Expanded(
                 child: _CategoryProducts(
                   viewModel: viewModel,
-                  products: viewModel.products,
+                  products: viewModel.visibleProducts,
                 ),
               ),
             ],
