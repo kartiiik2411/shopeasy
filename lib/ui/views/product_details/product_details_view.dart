@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shopeasy_app/app/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import '../../../app/app.locator.dart';
 import '../../../core/theme/app_color.dart';
@@ -119,8 +121,9 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                   Expanded(
                     child: FilledButton(
                       onPressed: () {
-                        widget.onBuyNow?.call();
-                        Navigator.of(context).pop();
+                        locator<NavigationService>().navigateToCheckoutView(
+                          product: product,
+                        );
                       },
                       child: const Text('Buy now'),
                     ),
