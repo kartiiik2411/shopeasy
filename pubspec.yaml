@@ -7,11 +7,22 @@ environment:
   sdk: ^3.12.1
 
 dependencies:
+<<<<<<< HEAD
+=======
+  cloud_firestore: ^6.10.0
+>>>>>>> origin/devsanika
   firebase_auth: ^6.7.0
   firebase_core: ^4.15.0
   flutter:
     sdk: flutter
+  geocoding: ^5.0.0
+  geolocator: ^14.1.1
+  google_sign_in: ^7.2.0
   http: ^1.6.0
+<<<<<<< HEAD
+=======
+  share_plus: ^13.3.1
+>>>>>>> origin/devsanika
   shared_preferences: ^2.5.6
   stacked: ^3.5.0
   stacked_services: ^1.6.0
@@ -25,7 +36,11 @@ dev_dependencies:
   mocktail: ^1.0.5
 
 flutter:
+<<<<<<< HEAD
   uses-material-design: true
 
   assets:
     - assets/images/onboarding/
+=======
+  uses-material-design: true
+>>>>>>> origin/devsanika

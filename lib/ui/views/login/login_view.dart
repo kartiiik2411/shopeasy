@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-import '../../../core/theme/app_color.dart';
 import 'login_viewmodel.dart';
 
 class LoginView extends StackedView<LoginViewModel> {
@@ -49,6 +48,7 @@ class LoginView extends StackedView<LoginViewModel> {
                         ),
                         child: Form(
                           key: viewModel.formKey,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [

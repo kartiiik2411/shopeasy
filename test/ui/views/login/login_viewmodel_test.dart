@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -40,17 +41,26 @@ void main() {
       expect(viewModel.validateEmail('user@example.com'), isNull);
     });
 
+    test('requires a full name while registering', () {
+      viewModel.isRegisterMode = true;
+
+      expect(viewModel.validateName(' A '), 'Enter your full name.');
+      expect(viewModel.validateName(' Alex Johnson '), isNull);
+    });
+
     test('rejects an empty password', () {
       expect(viewModel.validatePassword(''), 'Password is required.');
     });
 
-    test('requires six characters during registration', () {
-      viewModel.isRegisterMode = true;
-
+    test('requires six characters for authentication', () {
       expect(
         viewModel.validatePassword('123'),
         'Password must contain at least 6 characters.',
       );
+    });
+
+    test('accepts a valid password', () {
+      expect(viewModel.validatePassword('secure-password'), isNull);
     });
 
     test('toggles registration mode', () {
@@ -68,5 +78,23 @@ void main() {
 
       expect(viewModel.obscurePassword, isFalse);
     });
+  });
+
+  test('shows a friendly message when Google sign-in is cancelled', () async {
+    final googleViewModel = LoginViewModel(
+      auth: mockAuth,
+      navigationService: NavigationService(),
+      googleCredentialProvider: () async {
+        throw const GoogleSignInException(
+          code: GoogleSignInExceptionCode.canceled,
+        );
+      },
+    );
+
+    await googleViewModel.signInWithGoogle();
+
+    expect(googleViewModel.errorMessage, 'Sign-in was cancelled.');
+    expect(googleViewModel.isSubmitting, isFalse);
+    googleViewModel.dispose();
   });
 }

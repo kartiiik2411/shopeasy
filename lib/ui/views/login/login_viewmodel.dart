@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -7,12 +9,18 @@ import '../../../app/app.locator.dart';
 import '../../../app/app.router.dart';
 
 class LoginViewModel extends BaseViewModel {
-  LoginViewModel({FirebaseAuth? auth, NavigationService? navigationService})
-    : _auth = auth ?? FirebaseAuth.instance,
-      _navigationService = navigationService ?? locator<NavigationService>();
+  LoginViewModel({
+    FirebaseAuth? auth,
+    NavigationService? navigationService,
+    Future<AuthCredential> Function()? googleCredentialProvider,
+  }) : _auth = auth ?? FirebaseAuth.instance,
+       _navigationService = navigationService ?? locator<NavigationService>(),
+       _googleCredentialProvider =
+           googleCredentialProvider ?? _createGoogleCredential;
 
   final FirebaseAuth _auth;
   final NavigationService _navigationService;
+  final Future<AuthCredential> Function() _googleCredentialProvider;
 
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
@@ -49,19 +57,20 @@ class LoginViewModel extends BaseViewModel {
   String? validateEmail(String? value) {
     final email = value?.trim() ?? '';
     if (email.isEmpty) return 'Email is required.';
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      return 'Enter a valid email address.';
-    }
-    return null;
+    return _isValidEmail(email) ? null : 'Enter a valid email address.';
   }
 
   String? validatePassword(String? value) {
     final password = value ?? '';
     if (password.isEmpty) return 'Password is required.';
-    if (isRegisterMode && password.length < 6) {
+    if (password.length < 6) {
       return 'Password must contain at least 6 characters.';
     }
     return null;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
   }
 
   Future<void> submit() async {
@@ -116,8 +125,15 @@ class LoginViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      await _auth.signInWithProvider(GoogleAuthProvider());
+      if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) {
+        await _auth.signInWithProvider(GoogleAuthProvider());
+      } else {
+        final credential = await _googleCredentialProvider();
+        await _auth.signInWithCredential(credential);
+      }
       await _navigationService.replaceWith(Routes.homeView);
+    } on GoogleSignInException catch (e) {
+      errorMessage = _friendlyGoogleError(e.code);
     } on FirebaseAuthException catch (e) {
       errorMessage = _friendlyError(e.code);
     } catch (_) {
@@ -128,11 +144,23 @@ class LoginViewModel extends BaseViewModel {
     }
   }
 
+  static Future<AuthCredential> _createGoogleCredential() async {
+    final googleSignIn = GoogleSignIn.instance;
+    await googleSignIn.initialize();
+
+    final account = await googleSignIn.authenticate();
+    final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw StateError('Google sign-in did not return an ID token.');
+    }
+
+    return GoogleAuthProvider.credential(idToken: idToken);
+  }
+
   Future<void> forgotPassword() async {
     final email = emailController.text.trim();
 
-    if (email.isEmpty ||
-        !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+    if (email.isEmpty || !_isValidEmail(email)) {
       errorMessage = 'Enter your email address first.';
       notifyListeners();
       return;
@@ -173,6 +201,8 @@ class LoginViewModel extends BaseViewModel {
         return 'This account has been disabled.';
       case 'operation-not-allowed':
         return 'Enable this sign-in method in Firebase Console.';
+      case 'unsupported-platform':
+        return 'Google sign-in is unavailable on this platform.';
       case 'network-request-failed':
         return 'Network error. Check your connection.';
       case 'too-many-requests':
@@ -180,10 +210,31 @@ class LoginViewModel extends BaseViewModel {
       case 'account-exists-with-different-credential':
         return 'This email uses a different sign-in method.';
       case 'popup-closed-by-user':
+      case 'web-context-cancelled':
         return 'Sign-in was cancelled.';
       default:
         return 'Authentication failed. Please try again.';
     }
+  }
+
+  String _friendlyGoogleError(GoogleSignInExceptionCode code) {
+    if (code == GoogleSignInExceptionCode.canceled) {
+      return 'Sign-in was cancelled.';
+    }
+    if (code == GoogleSignInExceptionCode.interrupted) {
+      return 'Sign-in was interrupted. Please try again.';
+    }
+    if (code == GoogleSignInExceptionCode.uiUnavailable) {
+      return 'Google sign-in is unavailable on this device.';
+    }
+    if (code == GoogleSignInExceptionCode.clientConfigurationError ||
+        code == GoogleSignInExceptionCode.providerConfigurationError) {
+      return 'Google sign-in is missing platform OAuth configuration.';
+    }
+    if (code == GoogleSignInExceptionCode.userMismatch) {
+      return 'The selected Google account is no longer signed in.';
+    }
+    return 'Google sign-in failed. Please try again.';
   }
 
   @override
