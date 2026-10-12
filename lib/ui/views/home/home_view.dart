@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shopeasy_app/data/service/notification_service.dart';
 import 'package:stacked/stacked.dart';
 
 import '../../../core/theme/app_color.dart';
@@ -208,9 +209,9 @@ class _HomeHeader extends StatelessWidget {
                         await viewModel.toggleVoiceSearch();
                       } catch (error) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('$error')),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('$error')));
                         }
                       }
                     },
@@ -237,7 +238,9 @@ class _HomeHeader extends StatelessWidget {
                       } catch (error) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Could not open camera: $error')),
+                            SnackBar(
+                              content: Text('Could not open camera: $error'),
+                            ),
                           );
                         }
                       }
@@ -368,14 +371,14 @@ class _CategorySection extends StatelessWidget {
               ),
               ...categories.map(
                 (category) => _PopularCategoryCard(
-                    label: _formatCategory(category),
+                  label: _formatCategory(category),
                   imageUrl: _categoryImageUrl(category),
                   onTap: () => viewModel.openCategory(category),
                 ),
               ),
             ],
           ),
-          ),
+        ),
       ],
     );
   }
@@ -1963,7 +1966,7 @@ class _SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<_SettingsPage> {
   static const _settingDefaults = <String, bool>{
-    'push_notifications': true,
+    'push_notifications': false,
     'order_updates': true,
     'promotional_emails': false,
     'location_personalization': false,
@@ -1982,7 +1985,9 @@ class _SettingsPageState extends State<_SettingsPage> {
   Future<void> _loadSettings() async {
     try {
       final preferences = await SharedPreferences.getInstance();
+
       if (!mounted) return;
+
       setState(() {
         _settings = {
           for (final entry in _settingDefaults.entries)
@@ -1992,7 +1997,9 @@ class _SettingsPageState extends State<_SettingsPage> {
       });
     } catch (error) {
       if (!mounted) return;
+
       setState(() => _loading = false);
+
       _showMessage(context, 'Could not load saved settings: $error');
     }
   }
@@ -2001,9 +2008,78 @@ class _SettingsPageState extends State<_SettingsPage> {
     try {
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool(key, value);
-      if (mounted) setState(() => _settings = {..._settings, key: value});
+
+      if (!mounted) return;
+
+      setState(() {
+        _settings = {..._settings, key: value};
+      });
     } catch (error) {
-      if (mounted) _showMessage(context, 'Could not save this setting: $error');
+      if (mounted) {
+        _showMessage(context, 'Could not save this setting: $error');
+      }
+    }
+  }
+
+  // Enable or disable Firebase push notifications.
+  Future<void> _setPushNotifications(bool enabled) async {
+    try {
+      if (enabled) {
+        final granted = await NotificationService.instance
+            .enableNotifications();
+
+        if (!mounted) return;
+
+        if (!granted) {
+          setState(() {
+            _settings = {..._settings, 'push_notifications': false};
+          });
+
+          _showMessage(
+            context,
+            'Notification permission was denied. '
+            'Enable it in device settings.',
+          );
+          return;
+        }
+
+        setState(() {
+          _settings = {..._settings, 'push_notifications': true};
+        });
+
+        _showMessage(context, 'Push notifications enabled.');
+      } else {
+        await NotificationService.instance.disableNotifications();
+
+        if (!mounted) return;
+
+        setState(() {
+          _settings = {..._settings, 'push_notifications': false};
+        });
+
+        _showMessage(context, 'Push notifications disabled.');
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      // Reload the persisted preference after a failure.
+      try {
+        final preferences = await SharedPreferences.getInstance();
+
+        if (!mounted) return;
+
+        setState(() {
+          _settings = {
+            ..._settings,
+            'push_notifications':
+                preferences.getBool('push_notifications') ?? false,
+          };
+        });
+      } catch (_) {
+        // Keep the existing state if preferences cannot be read.
+      }
+
+      _showMessage(context, 'Could not update notifications: $error');
     }
   }
 
@@ -2016,8 +2092,12 @@ class _SettingsPageState extends State<_SettingsPage> {
           title: 'Settings',
           onBack: widget.viewModel.closeProfileSubPage,
         ),
+
         const SizedBox(height: 16),
+
+        // Appearance
         const _ProfileSectionHeading(title: 'Appearance'),
+
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(
@@ -2028,25 +2108,36 @@ class _SettingsPageState extends State<_SettingsPage> {
           subtitle: const Text('Choose light, dark, or follow your device'),
           trailing: ValueListenableBuilder<ThemeMode>(
             valueListenable: AppThemeController.mode,
-            builder: (context, mode, _) => DropdownButton<ThemeMode>(
-              value: mode,
-              underline: const SizedBox.shrink(),
-              items: const [
-                DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text('System'),
-                ),
-                DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
-                DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
-              ],
-              onChanged: (value) {
-                if (value != null) AppThemeController.setMode(value);
-              },
-            ),
+            builder: (context, mode, _) {
+              return DropdownButton<ThemeMode>(
+                value: mode,
+                underline: const SizedBox.shrink(),
+                items: const [
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: Text('System'),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: Text('Light'),
+                  ),
+                  DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    AppThemeController.setMode(value);
+                  }
+                },
+              );
+            },
           ),
         ),
+
         const Divider(),
+
+        // Notifications
         const _ProfileSectionHeading(title: 'Notifications'),
+
         if (_loading)
           const Padding(
             padding: EdgeInsets.all(16),
@@ -2058,27 +2149,63 @@ class _SettingsPageState extends State<_SettingsPage> {
             'Push notifications',
             'Allow app notifications on this device',
             Icons.notifications_outlined,
+            onChangedOverride: _setPushNotifications,
           ),
+
+          // Send a local notification to test notification display.
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: OutlinedButton.icon(
+              onPressed: (_settings['push_notifications'] ?? false)
+                  ? () async {
+                      try {
+                        await NotificationService.instance
+                            .sendTestNotification();
+
+                        if (!mounted) return;
+
+                        _showMessage(context, 'Test notification triggered.');
+                      } catch (error) {
+                        if (!mounted) return;
+
+                        _showMessage(
+                          context,
+                          'Test notification failed: $error',
+                        );
+                      }
+                    }
+                  : null,
+              icon: const Icon(Icons.notifications_active_outlined),
+              label: const Text('Send test notification'),
+            ),
+          ),
+
           _settingSwitch(
             'order_updates',
             'Order updates',
             'Get delivery and order status updates',
             Icons.local_shipping_outlined,
           ),
+
           _settingSwitch(
             'promotional_emails',
             'Offers and recommendations',
             'Receive shopping offers and product recommendations',
             Icons.local_offer_outlined,
           ),
+
           const Divider(),
+
+          // Privacy and security
           const _ProfileSectionHeading(title: 'Privacy and security'),
+
           _settingSwitch(
             'location_personalization',
             'Location personalization',
             'Use your location when you request nearby delivery details',
             Icons.location_on_outlined,
           ),
+
           _settingSwitch(
             'biometric_lock',
             'App lock preference',
@@ -2086,8 +2213,12 @@ class _SettingsPageState extends State<_SettingsPage> {
             Icons.fingerprint,
           ),
         ],
+
         const Divider(),
+
+        // Account
         const _ProfileSectionHeading(title: 'Account'),
+
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(
@@ -2099,6 +2230,7 @@ class _SettingsPageState extends State<_SettingsPage> {
               ? null
               : widget.viewModel.signOut,
         ),
+
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(
@@ -2113,53 +2245,70 @@ class _SettingsPageState extends State<_SettingsPage> {
     );
   }
 
+  // Reusable switch for all settings.
   Widget _settingSwitch(
     String key,
     String title,
     String subtitle,
-    IconData icon,
-  ) {
+    IconData icon, {
+    ValueChanged<bool>? onChangedOverride,
+  }) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       secondary: Icon(icon, color: AppColors.primaryPurple),
       title: Text(title),
       subtitle: Text(subtitle),
       value: _settings[key] ?? false,
-      onChanged: (value) => _setSetting(key, value),
+      onChanged: (value) {
+        if (onChangedOverride != null) {
+          onChangedOverride(value);
+        } else {
+          _setSetting(key, value);
+        }
+      },
     );
   }
 
+  // Confirm account deletion.
   Future<void> _confirmDeleteAccount() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete account?'),
         content: const Text(
-          'This permanently deletes your Firebase account. This action cannot be undone.',
+          'This permanently deletes your Firebase account. '
+          'This action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
             child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.coral),
-            onPressed: () => Navigator.pop(dialogContext, true),
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
             child: const Text('Delete account'),
           ),
         ],
       ),
     );
+
     if (!mounted || confirmed != true) return;
+
     try {
       await widget.viewModel.deleteAccount();
     } catch (error) {
-      if (mounted) {
-        _showMessage(
-          context,
-          'Could not delete your account. You may need to sign in again: $error',
-        );
-      }
+      if (!mounted) return;
+
+      _showMessage(
+        context,
+        'Could not delete your account. '
+        'You may need to sign in again: $error',
+      );
     }
   }
 }
