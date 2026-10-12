@@ -11,8 +11,7 @@ class FirestoreAddressRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  Future<DocumentReference<Map<String, dynamic>>>
-  _getAddressDocument() async {
+  Future<DocumentReference<Map<String, dynamic>>> _getAddressDocument() async {
     final user = _auth.currentUser ?? await _auth.authStateChanges().first;
     if (user == null) {
       throw StateError('Sign in before saving a delivery address.');

@@ -20,6 +20,7 @@ import '../../../domain/use_cases/get_current_user_use_case.dart';
 import '../../../domain/use_cases/get_products_use_case.dart';
 import '../../../domain/use_cases/sign_out_use_case.dart';
 import '../../../data/repositories/firestore_address_repository.dart';
+import '../../../core/network/notifications_service.dart';
 
 class HomeViewModel extends BaseViewModel {
   HomeViewModel({
@@ -204,6 +205,14 @@ class HomeViewModel extends BaseViewModel {
   void closeProfileSubPage() {
     profileSubPage = 0;
     notifyListeners();
+  }
+
+  Future<void> testNotification() async {
+    try {
+      await locator<NotificationService>().showTestNotification();
+    } catch (error) {
+      debugPrint('Test notification failed: $error');
+    }
   }
 
   void markAddressPromptShown() {

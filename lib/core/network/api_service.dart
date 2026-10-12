@@ -16,9 +16,9 @@ class ApiService {
     Map<String, String>? queryParameters,
     String? accessToken,
   }) async {
-    final uri = Uri.parse('${ApiConstants.baseUrl}$path').replace(
-      queryParameters: queryParameters,
-    );
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}$path',
+    ).replace(queryParameters: queryParameters);
     final response = await _client.get(uri, headers: _headers(accessToken));
     return _decodeResponse(response);
   }

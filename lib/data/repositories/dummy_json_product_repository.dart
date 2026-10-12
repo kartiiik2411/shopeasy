@@ -33,16 +33,12 @@ class DummyJsonProductRepository implements ProductRepository {
       queryParameters = {'limit': '${ApiConstants.pageSize}'};
     } else {
       path = ApiConstants.products;
-      queryParameters = {
-        'limit': '${ApiConstants.pageSize}',
-        'skip': '0',
-      };
+      queryParameters = {'limit': '${ApiConstants.pageSize}', 'skip': '0'};
     }
 
-    final response = await _apiService.get(
-      path,
-      queryParameters: queryParameters,
-    ) as Map<String, dynamic>;
+    final response =
+        await _apiService.get(path, queryParameters: queryParameters)
+            as Map<String, dynamic>;
     final products = (response['products'] as List<dynamic>? ?? const [])
         .whereType<Map<String, dynamic>>()
         .map(_productFromJson)
@@ -85,8 +81,7 @@ class DummyJsonProductRepository implements ProductRepository {
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0,
-      discountPercentage:
-          (json['discountPercentage'] as num?)?.toDouble() ?? 0,
+      discountPercentage: (json['discountPercentage'] as num?)?.toDouble() ?? 0,
       rating: (json['rating'] as num?)?.toDouble() ?? 0,
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       brand: json['brand'] as String?,

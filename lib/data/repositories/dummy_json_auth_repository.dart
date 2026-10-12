@@ -36,10 +36,7 @@ class DummyJsonAuthRepository implements AuthRepository {
     final token = _accessToken;
     if (token == null) return null;
     final response =
-        await _apiService.get(
-              ApiConstants.currentUser,
-              accessToken: token,
-            )
+        await _apiService.get(ApiConstants.currentUser, accessToken: token)
             as Map<String, dynamic>;
     _currentUser = _userFromJson(response);
     return _currentUser;
@@ -54,8 +51,7 @@ class DummyJsonAuthRepository implements AuthRepository {
   AuthUser _userFromJson(Map<String, dynamic> json) => AuthUser(
     id: '${json['id']}',
     email: json['email'] as String? ?? '',
-    displayName:
-        '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim(),
+    displayName: '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim(),
     photoUrl: json['image'] as String?,
   );
 }

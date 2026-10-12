@@ -156,34 +156,71 @@ class _HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Stack(
-                clipBehavior: Clip.none,
+
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    tooltip: 'Open cart',
-                    onPressed: () => viewModel.selectDestination(3),
-                    icon: const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (viewModel.cartProducts.isNotEmpty)
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: CircleAvatar(
-                        radius: 9,
-                        backgroundColor: AppColors.coral,
-                        child: Text(
-                          '${viewModel.cartProducts.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                  // Notification icon
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        onPressed: () {
+                          // Open your notifications page here.
+                          viewModel.selectDestination(4);
+                        },
+                        icon: const Icon(
+                          Icons.notifications_none_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Positioned(
+                        top: 7,
+                        right: 7,
+                        child: Container(
+                          width: 9,
+                          height: 9,
+                          decoration: const BoxDecoration(
+                            color: AppColors.coral,
+                            shape: BoxShape.circle,
                           ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+
+                  // Cart icon
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Open cart',
+                        onPressed: () => viewModel.selectDestination(3),
+                        icon: const Icon(
+                          Icons.shopping_cart_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (viewModel.cartProducts.isNotEmpty)
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: CircleAvatar(
+                            radius: 9,
+                            backgroundColor: AppColors.coral,
+                            child: Text(
+                              '${viewModel.cartProducts.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -208,9 +245,9 @@ class _HomeHeader extends StatelessWidget {
                         await viewModel.toggleVoiceSearch();
                       } catch (error) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('$error')),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('$error')));
                         }
                       }
                     },
@@ -237,7 +274,9 @@ class _HomeHeader extends StatelessWidget {
                       } catch (error) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Could not open camera: $error')),
+                            SnackBar(
+                              content: Text('Could not open camera: $error'),
+                            ),
                           );
                         }
                       }
@@ -368,14 +407,14 @@ class _CategorySection extends StatelessWidget {
               ),
               ...categories.map(
                 (category) => _PopularCategoryCard(
-                    label: _formatCategory(category),
+                  label: _formatCategory(category),
                   imageUrl: _categoryImageUrl(category),
                   onTap: () => viewModel.openCategory(category),
                 ),
               ),
             ],
           ),
-          ),
+        ),
       ],
     );
   }
@@ -1639,6 +1678,28 @@ class _ProfilePage extends StatelessWidget {
           icon: const Icon(Icons.logout_rounded),
           label: Text(viewModel.isSigningOut ? 'Signing out...' : 'Sign out'),
         ),
+        const SizedBox(height: 16),
+
+        // Test notification button
+        _ProfileQuickAction(
+          icon: Icons.notifications_active_outlined,
+          label: 'Test Notification',
+          onTap: () async {
+            try {
+              await viewModel.testNotification();
+
+              if (context.mounted) {
+                _showMessage(context, 'Test notification triggered.');
+              }
+            } catch (error) {
+              if (context.mounted) {
+                _showMessage(context, 'Notification failed: $error');
+              }
+            }
+          },
+        ),
+
+        const SizedBox(height: 12),
       ],
     );
   }

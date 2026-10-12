@@ -9,6 +9,8 @@ import 'package:shopeasy_app/ui/views/splash/splash_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import '../core/network/notifications_service.dart';
+
 @StackedApp(
   routes: [
     MaterialRoute(page: SplashView, initial: true),
@@ -23,6 +25,7 @@ import 'package:stacked_services/stacked_services.dart';
       asType: ProductRepository,
     ),
     LazySingleton(classType: NavigationService),
+    LazySingleton(classType: NotificationService),
   ],
 )
 class App {}

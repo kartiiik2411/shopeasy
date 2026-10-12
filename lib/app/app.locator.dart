@@ -10,6 +10,7 @@
 import 'package:stacked_services/src/navigation/navigation_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
+import '../core/network/notifications_service.dart';
 import '../data/repositories/dummy_json_auth_repository.dart';
 import '../data/repositories/dummy_json_product_repository.dart';
 import '../domain/repositories/auth_repository.dart';
@@ -35,4 +36,5 @@ Future<void> setupLocator({
     () => DummyJsonProductRepository(),
   );
   locator.registerLazySingleton(() => NavigationService());
+  locator.registerLazySingleton(() => NotificationService());
 }

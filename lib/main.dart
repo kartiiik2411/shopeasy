@@ -1,20 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app/app.locator.dart';
 import 'app/app.router.dart';
+import '../core/network/notifications_service.dart';
 import 'core/theme/app_theme_controller.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+
+  debugPrint('Background FCM message: ${message.messageId}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
-  await AppThemeController.load();
 
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  await AppThemeController.load();
   await setupLocator();
 
+  // Render the app before requesting notification permission.
   runApp(const ShopEasyApp());
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await locator<NotificationService>().initialize();
+    } catch (error, stackTrace) {
+      debugPrint('Notification initialization failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  });
 }
 
 class ShopEasyApp extends StatelessWidget {
@@ -29,7 +50,7 @@ class ShopEasyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorKey: StackedService.navigatorKey,
         onGenerateRoute: StackedRouter().onGenerateRoute,
-        initialRoute: Routes.loginView,
+        initialRoute: Routes.splashView,
         themeMode: themeMode,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
