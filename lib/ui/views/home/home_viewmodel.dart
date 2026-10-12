@@ -1,11 +1,10 @@
-<<<<<<< HEAD
-=======
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
->>>>>>> origin/devsanika
+import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -49,16 +48,13 @@ class HomeViewModel extends BaseViewModel {
   final NavigationService _navigationService;
   final FirestoreAddressRepository _addressRepository;
   final FirebaseAuth _auth;
+  final SpeechToText _speech = SpeechToText();
+  final ImagePicker _imagePicker = ImagePicker();
 
   AuthUser? user;
 
   List<Product> products = [];
   List<String> categories = [];
-<<<<<<< HEAD
-
-  String searchQuery = '';
-  String? selectedCategory;
-=======
   final Map<int, Product> _likedProducts = {};
   final Map<int, Product> _cartProducts = {};
   final Map<int, Product> _recentlyViewedProducts = {};
@@ -66,23 +62,49 @@ class HomeViewModel extends BaseViewModel {
   final searchController = TextEditingController();
   String searchQuery = '';
   String? selectedCategory;
+  String selectedGender = 'All';
+  String sortOption = 'Popular';
+  bool discountedOnly = false;
+  double minimumRating = 0;
+  bool isListeningForSearch = false;
   DeliveryAddress? deliveryAddress;
   String? addressLoadError;
   bool addressCheckComplete = false;
   bool addressPromptShown = false;
   bool addressLoadErrorShown = false;
   bool isSavingAddress = false;
->>>>>>> origin/devsanika
 
   bool isLoadingProducts = false;
   bool isSigningOut = false;
 
   int selectedNavigationIndex = 0;
-<<<<<<< HEAD
-=======
   int profileSubPage = 0;
   List<Product> get likedProducts => _likedProducts.values.toList();
   List<Product> get cartProducts => _cartProducts.values.toList();
+  List<Product> get visibleProducts {
+    final filtered = products.where((product) {
+      final category = product.category.toLowerCase();
+      final matchesGender = switch (selectedGender) {
+        'Men' => category.startsWith('mens-'),
+        'Women' => category.startsWith('womens-'),
+        _ => true,
+      };
+      return matchesGender &&
+          (!discountedOnly || product.discountPercentage > 0) &&
+          product.rating >= minimumRating;
+    }).toList();
+
+    switch (sortOption) {
+      case 'Price: low to high':
+        filtered.sort((a, b) => a.discountedPrice.compareTo(b.discountedPrice));
+      case 'Price: high to low':
+        filtered.sort((a, b) => b.discountedPrice.compareTo(a.discountedPrice));
+      case 'Top rated':
+        filtered.sort((a, b) => b.rating.compareTo(a.rating));
+    }
+    return filtered;
+  }
+
   List<Product> get recentlyViewedProducts =>
       _recentlyViewedProducts.values.toList().reversed.toList();
   String get profileName =>
@@ -156,7 +178,8 @@ class HomeViewModel extends BaseViewModel {
 
     final updatedEmail = email.trim();
     if (updatedEmail.isNotEmpty &&
-        updatedEmail.toLowerCase() != (firebaseUser.email ?? '').toLowerCase()) {
+        updatedEmail.toLowerCase() !=
+            (firebaseUser.email ?? '').toLowerCase()) {
       await firebaseUser.verifyBeforeUpdateEmail(updatedEmail);
     }
     await firebaseUser.updateDisplayName(name.trim());
@@ -186,25 +209,17 @@ class HomeViewModel extends BaseViewModel {
   void markAddressPromptShown() {
     addressPromptShown = true;
   }
->>>>>>> origin/devsanika
 
   Future<void> initialise() async {
     setBusy(true);
 
     try {
       user = await _getCurrentUser();
-<<<<<<< HEAD
-=======
       await _loadDeliveryAddress();
->>>>>>> origin/devsanika
       categories = await _getCategories();
       await loadProducts();
-    } catch (error) {
-      setError(error);
     } finally {
       setBusy(false);
-<<<<<<< HEAD
-=======
     }
   }
 
@@ -221,7 +236,6 @@ class HomeViewModel extends BaseViewModel {
     } finally {
       addressCheckComplete = true;
       notifyListeners();
->>>>>>> origin/devsanika
     }
   }
 
@@ -327,14 +341,11 @@ class HomeViewModel extends BaseViewModel {
   void search(String value) {
     searchQuery = value.trim();
     loadProducts();
-<<<<<<< HEAD
-=======
   }
 
   void clearSearch() {
     searchController.clear();
     search('');
->>>>>>> origin/devsanika
   }
 
   Future<void> selectCategory(String? category) async {
@@ -342,35 +353,68 @@ class HomeViewModel extends BaseViewModel {
     await loadProducts();
   }
 
-<<<<<<< HEAD
-  Future<void> selectCategoryFromCategories(String? category) async {
+  Future<void> openCategory(String? category) async {
     selectedCategory = category;
-    selectedNavigationIndex = 0;
+    selectedNavigationIndex = 1;
+    profileSubPage = 0;
     notifyListeners();
-
     await loadProducts();
   }
 
-  void selectDestination(int index) {
-    if (index < 0 || index > 4) return;
-
-    selectedNavigationIndex = index;
+  void setSortOption(String value) {
+    sortOption = value;
     notifyListeners();
-
-    // Add navigation for other bottom-navigation destinations
-    // when their routes and views are implemented.
   }
 
-  /// Opens the Product Details screen.
-  void openProductDetails() {
-    _navigationService.navigateTo(const ProductDetailsViewRoute());
+  void setGender(String value) {
+    selectedGender = value;
+    notifyListeners();
   }
 
-  Future<void> loadProducts() async {
-    isLoadingProducts = true;
+  void setDiscountedOnly(bool value) {
+    discountedOnly = value;
     notifyListeners();
+  }
 
-=======
+  void setMinimumRating(double value) {
+    minimumRating = value;
+    notifyListeners();
+  }
+
+  Future<void> toggleVoiceSearch() async {
+    if (_speech.isListening) {
+      await _speech.stop();
+      isListeningForSearch = false;
+      notifyListeners();
+      return;
+    }
+
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          isListeningForSearch = false;
+          notifyListeners();
+        }
+      },
+    );
+    if (!available) {
+      throw StateError('Speech recognition is not available on this device.');
+    }
+
+    isListeningForSearch = true;
+    notifyListeners();
+    await _speech.listen(
+      onResult: (result) {
+        searchController.text = result.recognizedWords;
+        if (result.finalResult) search(result.recognizedWords);
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<XFile?> captureSearchImage() =>
+      _imagePicker.pickImage(source: ImageSource.camera);
+
   void selectDestination(int index) {
     if (index < 0 || index > 4) return;
 
@@ -383,17 +427,11 @@ class HomeViewModel extends BaseViewModel {
     isLoadingProducts = true;
     notifyListeners();
 
->>>>>>> origin/devsanika
     try {
       products = await _getProducts(
         query: searchQuery,
         category: selectedCategory,
       );
-<<<<<<< HEAD
-    } catch (error) {
-      setError(error);
-=======
->>>>>>> origin/devsanika
     } finally {
       isLoadingProducts = false;
       notifyListeners();
@@ -409,21 +447,12 @@ class HomeViewModel extends BaseViewModel {
     try {
       await _auth.signOut();
       await _signOut();
-<<<<<<< HEAD
-
-      await _navigationService.replaceWith(const LoginViewRoute());
-    } catch (error) {
-      setError(error);
-=======
       await _navigationService.replaceWith(Routes.loginView);
->>>>>>> origin/devsanika
     } finally {
       isSigningOut = false;
       notifyListeners();
     }
   }
-<<<<<<< HEAD
-=======
 
   Future<void> deleteAccount() async {
     final firebaseUser = _auth.currentUser;
@@ -439,8 +468,8 @@ class HomeViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _speech.stop();
     searchController.dispose();
     super.dispose();
   }
->>>>>>> origin/devsanika
 }

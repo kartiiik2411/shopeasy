@@ -1,136 +1,79 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
 
-import '../../../core/theme/app_color.dart';
-import '../../../core/theme/app_size.dart';
-import 'splash_viewmodel.dart';
+import '../../../app/app.router.dart';
 
-class SplashView extends StackedView<SplashViewModel> {
+class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
   @override
-  Widget builder(
-    BuildContext context,
-    SplashViewModel viewModel,
-    Widget? child,
-  ) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryPurple,
-      body: SafeArea(
-        child: Center(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.85, end: 1.0),
-            duration: const Duration(milliseconds: 700),
-            curve: Curves.easeOutBack,
-            builder: (context, scale, child) {
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(AppSize.radiusL),
-                  ),
-                  child: const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: AppColors.primaryPurple,
-                    size: AppSize.iconXXL,
-                  ),
-                ),
-                const SizedBox(height: AppSize.spaceL),
-                const Text(
-                  'ShopEasy',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.7,
-                  ),
-                ),
-                const SizedBox(height: AppSize.spaceXS),
-                const Text(
-                  'Shop smarter, live better',
-                  style: TextStyle(
-                    color: Color(0xFFD5CBEF),
-                    fontSize: AppSize.fontS,
-                  ),
-                ),
-                const SizedBox(height: AppSize.spaceL),
-                const _LoadingDots(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  SplashViewModel viewModelBuilder(BuildContext context) {
-    return SplashViewModel();
-  }
-
-  @override
-  void onViewModelReady(SplashViewModel viewModel) {
-    viewModel.startSplashTimer();
-  }
+  State<SplashView> createState() => _SplashViewState();
 }
 
-class _LoadingDots extends StatefulWidget {
-  const _LoadingDots();
-
-  @override
-  State<_LoadingDots> createState() => _LoadingDotsState();
-}
-
-class _LoadingDotsState extends State<_LoadingDots>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+class _SplashViewState extends State<SplashView> {
+  Object? _error;
+  bool _checkingSession = false;
 
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
+    _checkSession();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _checkSession() async {
+    if (_checkingSession) return;
+    _checkingSession = true;
+    setState(() => _error = null);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final token = user == null ? null : await user.getIdToken();
+      if (!mounted) return;
+      final route = token == null || token.isEmpty
+          ? Routes.loginView
+          : Routes.homeView;
+      await Navigator.of(context).pushReplacementNamed(route);
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
+    } finally {
+      _checkingSession = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (index) {
-            final phase = (_controller.value + index * 0.22) % 1.0;
-
-            final opacity = (0.35 + phase * 0.65).clamp(0.35, 1.0).toDouble();
-
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: opacity),
-                shape: BoxShape.circle,
+    final error = _error;
+    return Scaffold(
+      body: Center(
+        child: error == null
+            ? const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Getting ShopEasy ready...'),
+                ],
+              )
+            : Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off_outlined, size: 40),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Could not check your sign-in session: $error',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: _checkSession,
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
               ),
-            );
-          }),
-        );
-      },
+      ),
     );
   }
 }
