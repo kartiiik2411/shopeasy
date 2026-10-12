@@ -12,7 +12,7 @@ class AppDialog {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(
           Icons.error_outline_rounded,
-          color: AppColors.error,
+          color: AppColors.errorBackground,
           size: AppSize.iconXXL,
         ),
         title: const Text('Login failed'),

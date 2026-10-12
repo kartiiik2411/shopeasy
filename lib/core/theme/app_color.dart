@@ -30,11 +30,6 @@ class AppColors {
   static const Color primaryPurpleShadow = Color(0x267B2FF7);
 
   // Gradients
-  static const LinearGradient buttonGradient = LinearGradient(
-    colors: [primaryPurple, darkPurple],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
 
   static const LinearGradient buttonGradient = LinearGradient(
     colors: [primaryPurple, secondaryPurple],
