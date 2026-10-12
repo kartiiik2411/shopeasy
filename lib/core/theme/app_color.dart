@@ -29,11 +29,7 @@ class AppColors {
   static const Color googleBlue = Color(0xFF4285F4);
   static const Color primaryPurpleShadow = Color(0x267B2FF7);
 
-  static const LinearGradient purplePinkGradient = LinearGradient(
-    colors: [primaryPurple, secondaryPurple, primaryPink],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // Gradients
 
   static const LinearGradient buttonGradient = LinearGradient(
     colors: [primaryPurple, secondaryPurple],

@@ -9,10 +9,10 @@ class AppDialog {
   static Future<void> showError(BuildContext context, String message) {
     return showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         icon: const Icon(
           Icons.error_outline_rounded,
-          color: AppColors.errorText,
+          color: AppColors.errorBackground,
           size: AppSize.iconXXL,
         ),
         title: const Text('Login failed'),
@@ -22,7 +22,7 @@ class AppDialog {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('OK'),
           ),
         ],

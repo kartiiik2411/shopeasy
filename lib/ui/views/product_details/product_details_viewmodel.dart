@@ -1,36 +1,48 @@
 import 'package:stacked/stacked.dart';
 
-import '../../../app/app.locator.dart';
-import '../../../domain/entities/product.dart';
-import '../../../domain/repositories/product_repository.dart';
-import '../../../domain/use_cases/get_product_use_case.dart';
-
 class ProductDetailsViewModel extends BaseViewModel {
-  ProductDetailsViewModel({
-    required this.productId,
-    GetProductUseCase? getProduct,
-  }) : _getProduct =
-           getProduct ?? GetProductUseCase(locator<ProductRepository>());
+  // Sample product data
+  final String productName = 'Essence Mascara Lash Princess';
+  final String category = 'Beauty';
+  final String imageUrl =
+      'https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/1.webp';
 
-  final int productId;
-  final GetProductUseCase _getProduct;
+  final String description =
+      'A high-quality mascara designed to provide volume '
+      'and length for beautiful, defined lashes.';
 
-  Product? product;
-  int selectedImageIndex = 0;
+  final String rating = '4.5';
+  final String price = '8.94';
+  final String originalPrice = '9.99';
+  final String discount = '10';
 
-  Future<void> loadProduct() async {
-    setBusy(true);
-    try {
-      product = await _getProduct(productId);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setBusy(false);
+  final bool inStock = true;
+
+  int quantity = 1;
+  bool isWishlisted = false;
+
+  void increaseQuantity() {
+    quantity++;
+    notifyListeners();
+  }
+
+  void decreaseQuantity() {
+    if (quantity > 1) {
+      quantity--;
+      notifyListeners();
     }
   }
 
-  void selectImage(int index) {
-    selectedImageIndex = index;
+  void toggleWishlist() {
+    isWishlisted = !isWishlisted;
     notifyListeners();
+  }
+
+  void addToCart() {
+    // Connect your shared cart service here.
+  }
+
+  void buyNow() {
+    // Connect your checkout flow here.
   }
 }
