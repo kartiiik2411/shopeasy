@@ -2,15 +2,6 @@ import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-
-import 'package:stacked/stacked.dart';
-
-import '../../../core/theme/app_color.dart';
-
-import '../../../domain/entities/product.dart';
-
-=======
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +12,6 @@ import '../../../core/theme/app_theme_controller.dart';
 import '../../../domain/entities/delivery_address.dart';
 import '../../../domain/entities/product.dart';
 import '../product_details/product_details_view.dart';
->>>>>>> origin/devsanika
 import 'home_viewmodel.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
@@ -37,27 +27,6 @@ class HomeView extends StackedView<HomeViewModel> {
 
   @override
   Widget builder(BuildContext context, HomeViewModel viewModel, Widget? child) {
-<<<<<<< HEAD
-    return Scaffold(
-      backgroundColor: AppColors.background,
-
-      body: SafeArea(
-        bottom: false,
-
-        child: Column(
-          children: [
-            _HomeHeader(viewModel: viewModel),
-
-            Expanded(child: _buildBody(viewModel)),
-          ],
-        ),
-      ),
-
-      bottomNavigationBar: _BottomNavigation(
-        selectedIndex: viewModel.selectedNavigationIndex,
-
-        onSelected: viewModel.selectDestination,
-=======
     final isHome = viewModel.selectedNavigationIndex == 0;
     if (viewModel.shouldPromptForAddress) {
       viewModel.markAddressPromptShown();
@@ -112,7 +81,6 @@ class HomeView extends StackedView<HomeViewModel> {
                 onSelected: viewModel.selectDestination,
               )
             : null,
->>>>>>> origin/devsanika
       ),
     );
   }
@@ -121,46 +89,6 @@ class HomeView extends StackedView<HomeViewModel> {
     switch (viewModel.selectedNavigationIndex) {
       case 1:
         return _CategoriesPage(viewModel: viewModel);
-<<<<<<< HEAD
-
-      case 2:
-        return const _EmptyPage(
-          icon: Icons.favorite_border_rounded,
-
-          title: 'Your Wishlist',
-
-          subtitle: 'Products you save will appear here.',
-        );
-
-      case 3:
-        return const _EmptyPage(
-          icon: Icons.shopping_cart_outlined,
-
-          title: 'Your Cart',
-
-          subtitle: 'Add products you love to your cart.',
-        );
-
-      case 4:
-        return _ProfilePage(viewModel: viewModel);
-
-      default:
-        return _HomeContent(viewModel: viewModel);
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-
-// Header and search
-
-// -----------------------------------------------------------------------------
-
-class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.viewModel});
-
-  final HomeViewModel viewModel;
-=======
       case 2:
         return _WishlistPage(viewModel: viewModel);
       case 3:
@@ -186,35 +114,16 @@ class _HomeHeader extends StatelessWidget {
 
   final HomeViewModel viewModel;
   final double topInset;
->>>>>>> origin/devsanika
 
   @override
   Widget build(BuildContext context) {
     final name = viewModel.user?.displayName?.trim();
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
     final greetingName = name == null || name.isEmpty
         ? 'ShopEasy Customer'
         : name;
 
     return Container(
       width: double.infinity,
-<<<<<<< HEAD
-
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-
-      decoration: const BoxDecoration(
-        color: AppColors.primaryPurple,
-
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-      ),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-=======
       padding: EdgeInsets.fromLTRB(20, topInset + 16, 20, 20),
       decoration: const BoxDecoration(
         color: AppColors.primaryPurple,
@@ -222,37 +131,12 @@ class _HomeHeader extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
->>>>>>> origin/devsanika
         children: [
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-<<<<<<< HEAD
-
-                  children: [
-                    const Text(
-                      'Welcome to ShopEasy,',
-
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      greetingName,
-
-                      maxLines: 1,
-
-                      overflow: TextOverflow.ellipsis,
-
-                      style: const TextStyle(
-                        color: Colors.white,
-
-                        fontSize: 20,
-
-=======
                   children: [
                     const Text(
                       'Welcome to ShopEasy,',
@@ -266,36 +150,21 @@ class _HomeHeader extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
->>>>>>> origin/devsanika
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-<<<<<<< HEAD
-
               const CircleAvatar(
                 backgroundColor: Colors.white24,
-
-=======
-              const CircleAvatar(
-                backgroundColor: Colors.white24,
->>>>>>> origin/devsanika
                 child: Icon(Icons.shopping_bag_outlined, color: Colors.white),
               ),
             ],
           ),
-<<<<<<< HEAD
-
-          const SizedBox(height: 20),
-
-          TextField(
-=======
           const SizedBox(height: 20),
           TextField(
             controller: viewModel.searchController,
->>>>>>> origin/devsanika
             onChanged: viewModel.search,
 
             textInputAction: TextInputAction.search,
@@ -304,18 +173,6 @@ class _HomeHeader extends StatelessWidget {
               hintText: 'Search products...',
 
               prefixIcon: const Icon(Icons.search_rounded),
-<<<<<<< HEAD
-
-              filled: true,
-
-              fillColor: Colors.white,
-
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-
-=======
               suffixIcon: viewModel.searchController.text.isEmpty
                   ? null
                   : IconButton(
@@ -328,7 +185,6 @@ class _HomeHeader extends StatelessWidget {
               contentPadding: const EdgeInsets.symmetric(vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
->>>>>>> origin/devsanika
                 borderSide: BorderSide.none,
               ),
             ),
@@ -340,17 +196,9 @@ class _HomeHeader extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-<<<<<<< HEAD
-
-// Home content
-
-// -----------------------------------------------------------------------------
-
-=======
 // Home content
 // -----------------------------------------------------------------------------
 
->>>>>>> origin/devsanika
 class _HomeContent extends StatelessWidget {
   const _HomeContent({required this.viewModel});
 
@@ -360,21 +208,6 @@ class _HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 20),
-<<<<<<< HEAD
-
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-
-          child: Text(
-            'Find your favourites',
-
-            style: TextStyle(
-              fontSize: 23,
-
-              fontWeight: FontWeight.bold,
-
-=======
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
@@ -383,23 +216,10 @@ class _HomeContent extends StatelessWidget {
             style: TextStyle(
               fontSize: 23,
               fontWeight: FontWeight.bold,
->>>>>>> origin/devsanika
               color: AppColors.black,
             ),
           ),
         ),
-<<<<<<< HEAD
-
-        const SizedBox(height: 18),
-
-        _CategorySection(viewModel: viewModel),
-
-        const SizedBox(height: 24),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-
-=======
         const SizedBox(height: 18),
         _CategorySection(viewModel: viewModel),
         const SizedBox(height: 18),
@@ -407,34 +227,18 @@ class _HomeContent extends StatelessWidget {
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
->>>>>>> origin/devsanika
           child: Text(
             viewModel.selectedCategory == null
                 ? 'Trending Products'
                 : 'Filtered Products',
-<<<<<<< HEAD
-
-            style: const TextStyle(
-              fontSize: 21,
-
-              fontWeight: FontWeight.bold,
-
-=======
             style: const TextStyle(
               fontSize: 21,
               fontWeight: FontWeight.bold,
->>>>>>> origin/devsanika
               color: AppColors.black,
             ),
           ),
         ),
-<<<<<<< HEAD
-
         const SizedBox(height: 14),
-
-=======
-        const SizedBox(height: 14),
->>>>>>> origin/devsanika
         _ProductSection(viewModel: viewModel),
       ],
     );
@@ -442,13 +246,7 @@ class _HomeContent extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-<<<<<<< HEAD
-
 // Categories
-
-=======
-// Categories
->>>>>>> origin/devsanika
 // -----------------------------------------------------------------------------
 
 class _CategorySection extends StatelessWidget {
@@ -460,29 +258,6 @@ class _CategorySection extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 48,
-<<<<<<< HEAD
-
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-
-        children: [
-          _CategoryChip(
-            label: 'All',
-
-            selected: viewModel.selectedCategory == null,
-
-            onTap: () => viewModel.selectCategory(null),
-          ),
-
-          ...viewModel.categories.map(
-            (category) => _CategoryChip(
-              label: _formatCategory(category),
-
-              selected: viewModel.selectedCategory == category,
-
-=======
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -496,7 +271,6 @@ class _CategorySection extends StatelessWidget {
             (category) => _CategoryChip(
               label: _formatCategory(category),
               selected: viewModel.selectedCategory == category,
->>>>>>> origin/devsanika
               onTap: () => viewModel.selectCategory(category),
             ),
           ),
@@ -522,49 +296,22 @@ class _CategoryChip extends StatelessWidget {
     required this.label,
 
     required this.selected,
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
     required this.onTap,
   });
 
   final String label;
 
   final bool selected;
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 10),
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
       child: ChoiceChip(
         label: Text(label),
 
         selected: selected,
-<<<<<<< HEAD
-
-        onSelected: (_) => onTap(),
-
-        selectedColor: AppColors.primaryPurple,
-
-        backgroundColor: Colors.white,
-
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : AppColors.black,
-
-          fontWeight: FontWeight.w600,
-        ),
-
-=======
         showCheckmark: false,
         onSelected: (_) => onTap(),
         selectedColor: AppColors.primaryPurple,
@@ -573,68 +320,12 @@ class _CategoryChip extends StatelessWidget {
           color: selected ? Colors.white : AppColors.black,
           fontWeight: FontWeight.w600,
         ),
->>>>>>> origin/devsanika
         side: BorderSide.none,
       ),
     );
   }
 }
 
-<<<<<<< HEAD
-// -----------------------------------------------------------------------------
-
-// Products
-
-// -----------------------------------------------------------------------------
-
-class _ProductSection extends StatelessWidget {
-  const _ProductSection({required this.viewModel});
-
-  final HomeViewModel viewModel;
-
-  @override
-  Widget build(BuildContext context) {
-    if (viewModel.isLoadingProducts && viewModel.products.isEmpty) {
-      return const SizedBox(
-        height: 240,
-
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (viewModel.products.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(20),
-
-        child: Center(child: Text('No products found.')),
-      );
-    }
-
-    return SizedBox(
-      height: 285,
-
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-
-        scrollDirection: Axis.horizontal,
-
-        itemCount: viewModel.products.length,
-
-        separatorBuilder: (_, _) => const SizedBox(width: 14),
-
-        itemBuilder: (context, index) {
-          final product = viewModel.products[index];
-
-          return SizedBox(
-            width: 190,
-            child: GestureDetector(
-              onTap: viewModel.openProductDetails,
-              child: _ProductCard(product: product),
-            ),
-          );
-        },
-      ),
-=======
 class _PromoSlider extends StatefulWidget {
   const _PromoSlider();
 
@@ -750,91 +441,10 @@ class _PromoSliderState extends State<_PromoSlider> {
           ),
         ),
       ],
->>>>>>> origin/devsanika
     );
   }
 }
 
-<<<<<<< HEAD
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
-
-  final Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-
-      color: AppColors.white,
-
-      elevation: 2,
-
-      clipBehavior: Clip.antiAlias,
-
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-
-              color: const Color(0xFFF7F7FA),
-
-              padding: const EdgeInsets.all(10),
-
-              child: Image.network(
-                product.thumbnail,
-
-                fit: BoxFit.contain,
-
-                errorBuilder: (_, _, _) {
-                  return const Center(
-                    child: Icon(Icons.image_not_supported_outlined, size: 36),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(12),
-
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
-              children: [
-                Text(
-                  product.title,
-
-                  maxLines: 2,
-
-                  overflow: TextOverflow.ellipsis,
-
-                  style: const TextStyle(
-                    fontSize: 14,
-
-                    fontWeight: FontWeight.w600,
-
-                    color: AppColors.black,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  '\$${product.price.toStringAsFixed(2)}',
-
-                  style: const TextStyle(
-                    fontSize: 17,
-
-                    fontWeight: FontWeight.bold,
-
-                    color: AppColors.primaryPurple,
-=======
 class _PromoSlide {
   const _PromoSlide({
     required this.title,
@@ -945,7 +555,6 @@ class _PromoBanner extends StatelessWidget {
                       fontSize: 12,
                       shadows: [Shadow(color: Colors.black38, blurRadius: 8)],
                     ),
->>>>>>> origin/devsanika
                   ),
                 ),
               ],
@@ -1078,11 +687,6 @@ class _ProfilePage extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-<<<<<<< HEAD
-
-// Wishlist and cart placeholders
-
-=======
 // Products
 // -----------------------------------------------------------------------------
 
@@ -2550,30 +2154,17 @@ void _showProfileInfo(BuildContext context, String title, String message) {
 
 // -----------------------------------------------------------------------------
 // Wishlist and cart placeholders
->>>>>>> origin/devsanika
 // -----------------------------------------------------------------------------
 
 class _EmptyPage extends StatelessWidget {
   const _EmptyPage({
     required this.icon,
-<<<<<<< HEAD
-
     required this.title,
-
-=======
-    required this.title,
->>>>>>> origin/devsanika
     required this.subtitle,
   });
 
   final IconData icon;
-<<<<<<< HEAD
-
   final String title;
-
-=======
-  final String title;
->>>>>>> origin/devsanika
   final String subtitle;
 
   @override
@@ -2581,36 +2172,6 @@ class _EmptyPage extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
-<<<<<<< HEAD
-
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-
-          children: [
-            Icon(icon, size: 60, color: AppColors.primaryPurple),
-
-            const SizedBox(height: 16),
-
-            Text(
-              title,
-
-              style: const TextStyle(
-                fontSize: 22,
-
-                fontWeight: FontWeight.bold,
-
-                color: AppColors.black,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              subtitle,
-
-              textAlign: TextAlign.center,
-
-=======
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2628,7 +2189,6 @@ class _EmptyPage extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
->>>>>>> origin/devsanika
               style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
@@ -2639,47 +2199,23 @@ class _EmptyPage extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-<<<<<<< HEAD
-
 // Bottom navigation
-
-=======
-// Bottom navigation
->>>>>>> origin/devsanika
 // -----------------------------------------------------------------------------
 
 class _BottomNavigation extends StatelessWidget {
   const _BottomNavigation({
     required this.selectedIndex,
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
     required this.onSelected,
   });
 
   final int selectedIndex;
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devsanika
   final ValueChanged<int> onSelected;
 
   static const _items = [
     (Icons.home_outlined, Icons.home_rounded, 'Home'),
-<<<<<<< HEAD
-
-    (Icons.grid_view_outlined, Icons.grid_view_rounded, 'Categories'),
-
-    (Icons.favorite_border_rounded, Icons.favorite_rounded, 'Wishlist'),
-
-    (Icons.shopping_cart_outlined, Icons.shopping_cart_rounded, 'Cart'),
-
-=======
     (Icons.grid_view_outlined, Icons.grid_view_rounded, 'Categories'),
     (Icons.favorite_border_rounded, Icons.favorite_rounded, 'Wishlist'),
     (Icons.shopping_cart_outlined, Icons.shopping_cart_rounded, 'Cart'),
->>>>>>> origin/devsanika
     (Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
   ];
 
@@ -2688,19 +2224,6 @@ class _BottomNavigation extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-<<<<<<< HEAD
-
-        border: Border(top: BorderSide(color: AppColors.border)),
-      ),
-
-      child: SafeArea(
-        top: false,
-
-        child: Row(
-          children: List.generate(_items.length, (index) {
-            final item = _items[index];
-
-=======
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: SafeArea(
@@ -2708,46 +2231,11 @@ class _BottomNavigation extends StatelessWidget {
         child: Row(
           children: List.generate(_items.length, (index) {
             final item = _items[index];
->>>>>>> origin/devsanika
             final selected = selectedIndex == index;
 
             return Expanded(
               child: InkWell(
                 onTap: () => onSelected(index),
-<<<<<<< HEAD
-
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-
-                    children: [
-                      Icon(
-                        selected ? item.$2 : item.$1,
-
-                        color: selected
-                            ? AppColors.primaryPurple
-                            : AppColors.textSecondary,
-
-                        size: 24,
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        item.$3,
-
-                        maxLines: 1,
-
-                        style: TextStyle(
-                          fontSize: 10,
-
-                          color: selected
-                              ? AppColors.primaryPurple
-                              : AppColors.textSecondary,
-
-=======
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Column(
@@ -2769,7 +2257,6 @@ class _BottomNavigation extends StatelessWidget {
                           color: selected
                               ? AppColors.primaryPurple
                               : AppColors.textSecondary,
->>>>>>> origin/devsanika
                           fontWeight: selected
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -2786,8 +2273,6 @@ class _BottomNavigation extends StatelessWidget {
     );
   }
 }
-<<<<<<< HEAD
-=======
 
 enum _AddressPromptChoice { manual, currentLocation, later }
 
@@ -3037,4 +2522,3 @@ class _DeliveryAddressFormState extends State<_DeliveryAddressForm> {
     return controller;
   }
 }
->>>>>>> origin/devsanika

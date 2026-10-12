@@ -9,20 +9,8 @@ import 'core/theme/app_theme_controller.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-<<<<<<< HEAD
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: 'AIzaSyCM6u9-h53wKDWM-EH9UGYUQm_kcVzRdCw',
-      appId: '1:967783066207:android:f60bde0c3a0403e8cc49ea',
-      messagingSenderId: '967783066207',
-      projectId: 'shopeasy-56ef9',
-      storageBucket: 'shopeasy-56ef9.firebasestorage.app',
-    ),
-  );
-=======
   await Firebase.initializeApp();
   await AppThemeController.load();
->>>>>>> origin/devsanika
 
   await setupLocator();
 
@@ -34,14 +22,6 @@ class ShopEasyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return MaterialApp(
-      title: 'ShopEasy',
-      debugShowCheckedModeBanner: false,
-      navigatorKey: StackedService.navigatorKey,
-      onGenerateRoute: StackedRouter().onGenerateRoute,
-      initialRoute: Routes.splashView,
-=======
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: AppThemeController.mode,
       builder: (context, themeMode, _) => MaterialApp(
@@ -68,7 +48,6 @@ class ShopEasyApp extends StatelessWidget {
           physics: const ClampingScrollPhysics(),
         ),
       ),
->>>>>>> origin/devsanika
     );
   }
 }
