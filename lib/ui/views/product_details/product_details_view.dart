@@ -112,7 +112,13 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: widget.onAddToCart,
+                      onPressed: () {
+                        widget.onAddToCart?.call();
+
+                        if (widget.onAddToCart != null && mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
                       icon: const Icon(Icons.add_shopping_cart),
                       label: const Text('Add to cart'),
                     ),

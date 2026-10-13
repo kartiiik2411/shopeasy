@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shopeasy_app/app/app.locator.dart';
+import 'package:shopeasy_app/app/app.router.dart';
 import 'package:shopeasy_app/data/service/notification_service.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import '../../../core/theme/app_color.dart';
 import '../../../core/theme/app_theme_controller.dart';
@@ -1000,6 +1003,8 @@ class _ProductCard extends StatelessWidget {
           onAddAddress: () => _showAddressEditor(context, viewModel),
           onAddToCart: () {
             viewModel.addToCart(product);
+            viewModel.selectDestination(3);
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Added to your cart.')),
             );
@@ -1308,24 +1313,34 @@ class _CartPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+
           ...cartProducts.map(
             (product) => Padding(
               padding: const EdgeInsets.only(right: 16, bottom: 10),
               child: _CartProductTile(
                 product: product,
                 onRemove: () => viewModel.removeFromCart(product),
+                onTap: () {
+                  locator<NavigationService>().navigateToCheckoutView(
+                    product: product,
+                  );
+                },
               ),
             ),
           ),
         ],
+
         const SizedBox(height: 24),
+
         _HorizontalProductSection(
           title: 'Suggested for you',
           products: suggestedProducts,
           emptyMessage: 'Products you might like will appear here.',
           viewModel: viewModel,
         ),
+
         const SizedBox(height: 24),
+
         _HorizontalProductSection(
           title: 'Your wishlist',
           products: wishlistProducts,
@@ -1397,63 +1412,104 @@ class _HorizontalProductSection extends StatelessWidget {
 }
 
 class _CartProductTile extends StatelessWidget {
-  const _CartProductTile({required this.product, required this.onRemove});
+  const _CartProductTile({
+    required this.product,
+    required this.onRemove,
+    required this.onTap,
+  });
 
   final Product product;
   final VoidCallback onRemove;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 56,
-            height: 56,
-            child: Image.network(
-              product.thumbnail,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) =>
-                  const Icon(Icons.image_not_supported_outlined),
-            ),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.border),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 76,
+                  height: 76,
+                  child: Image.network(
+                    product.thumbnail,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.border,
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: AppColors.textSecondary,
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  '\$${product.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: AppColors.primaryPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Text(
+                      '\$${product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: AppColors.primaryPurple,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    const Text(
+                      'Tap to continue to checkout',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              IconButton(
+                tooltip: 'Remove from cart',
+                onPressed: onRemove,
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              ),
+            ],
           ),
-          IconButton(
-            tooltip: 'Remove from cart',
-            onPressed: onRemove,
-            icon: const Icon(Icons.delete_outline, color: AppColors.coral),
-          ),
-        ],
+        ),
       ),
     );
   }
