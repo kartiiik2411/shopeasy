@@ -63,7 +63,7 @@ class HomeViewModel extends BaseViewModel {
   final searchController = TextEditingController();
   String searchQuery = '';
   String? selectedCategory;
-  String selectedGender = 'All';
+  String selectedGender = 'Gender';
   String sortOption = 'Popular';
   bool discountedOnly = false;
   double minimumRating = 0;
@@ -82,17 +82,32 @@ class HomeViewModel extends BaseViewModel {
   int profileSubPage = 0;
   List<Product> get likedProducts => _likedProducts.values.toList();
   List<Product> get cartProducts => _cartProducts.values.toList();
+
   List<Product> get visibleProducts {
     final filtered = products.where((product) {
       final category = product.category.toLowerCase();
+
+      // Match the selected category.
+      final matchesCategory =
+          selectedCategory == null ||
+          category == selectedCategory!.toLowerCase();
+
+      // Filter by gender.
       final matchesGender = switch (selectedGender) {
         'Men' => category.startsWith('mens-'),
         'Women' => category.startsWith('womens-'),
         _ => true,
       };
-      return matchesGender &&
-          (!discountedOnly || product.discountPercentage > 0) &&
-          product.rating >= minimumRating;
+
+      // Apply additional filters.
+      final matchesDiscount = !discountedOnly || product.discountPercentage > 0;
+
+      final matchesRating = product.rating >= minimumRating;
+
+      return matchesCategory &&
+          matchesGender &&
+          matchesDiscount &&
+          matchesRating;
     }).toList();
 
     switch (sortOption) {
@@ -103,6 +118,7 @@ class HomeViewModel extends BaseViewModel {
       case 'Top rated':
         filtered.sort((a, b) => b.rating.compareTo(a.rating));
     }
+
     return filtered;
   }
 

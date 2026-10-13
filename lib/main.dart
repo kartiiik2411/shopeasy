@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,9 +9,7 @@ import 'core/network/notifications_service.dart';
 import 'core/theme/app_theme_controller.dart';
 
 @pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(
-  RemoteMessage message,
-) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   debugPrint('Background FCM message: ${message.messageId}');
@@ -23,9 +20,7 @@ Future<void> main() async {
 
   await Firebase.initializeApp();
 
-  FirebaseMessaging.onBackgroundMessage(
-    firebaseMessagingBackgroundHandler,
-  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await AppThemeController.load();
   await setupLocator();
@@ -58,9 +53,7 @@ class ShopEasyApp extends StatelessWidget {
         initialRoute: Routes.splashView,
         themeMode: themeMode,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6750A4),
-          ),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
           scaffoldBackgroundColor: const Color(0xFFF8F7FC),
           useMaterial3: true,
         ),

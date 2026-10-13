@@ -530,7 +530,7 @@ class _BrowseControls extends StatelessWidget {
             onTap: () => _showOptions(
               context,
               title: 'Shop by gender',
-              options: const ['All', 'Men', 'Women'],
+              options: const ['Gender','Men', 'Women'],
               selected: viewModel.selectedGender,
               onSelected: viewModel.setGender,
             ),
@@ -1074,7 +1074,7 @@ class _CategoriesPage extends StatelessWidget {
             child: ListView(
               children: [
                 _CategoryRailItem(
-                  title: 'Popular',
+                  title: 'All Categories',
                   imageUrl: _categoryImageUrl(null),
                   selected: viewModel.selectedCategory == null,
                   onTap: () => viewModel.selectCategory(null),
@@ -1154,8 +1154,8 @@ class _CategoryRailItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 96),
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+          constraints: const BoxConstraints(minHeight: 76),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
@@ -1685,24 +1685,20 @@ class _ProfilePage extends StatelessWidget {
         _ProfileQuickAction(
           icon: Icons.notifications_active_outlined,
           label: 'Test Notification',
-          
-onTap: () async {
-  try {
-    await viewModel.testNotification();
 
-    if (!context.mounted) return;
+          onTap: () async {
+            try {
+              await viewModel.testNotification();
 
-    _showMessage(context, 'Test notification triggered.');
-  } catch (error) {
-    if (!context.mounted) return;
+              if (!context.mounted) return;
 
-    _showMessage(
-      context,
-      'Test notification failed: $error',
-    );
-  }
-},
+              _showMessage(context, 'Test notification triggered.');
+            } catch (error) {
+              if (!context.mounted) return;
 
+              _showMessage(context, 'Test notification failed: $error');
+            }
+          },
         ),
 
         const SizedBox(height: 12),
@@ -2221,27 +2217,25 @@ class _SettingsPageState extends State<_SettingsPage> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: OutlinedButton.icon(
               onPressed: (_settings['push_notifications'] ?? false)
-                 
-? () async {
-    try {
-      await NotificationService.instance.sendTestNotification();
+                  ? () async {
+                      try {
+                        await NotificationService.instance
+                            .sendTestNotification();
 
-      if (!context.mounted) return;
+                        if (!context.mounted) return;
 
-      _showMessage(context, 'Test notification triggered.');
-    } catch (error) {
-      if (!context.mounted) return;
+                        _showMessage(context, 'Test notification triggered.');
+                      } catch (error) {
+                        if (!context.mounted) return;
 
-      _showMessage(
-        context,
-        'Test notification failed: $error',
-      );
-    }
-  }
-: null,
+                        _showMessage(
+                          context,
+                          'Test notification failed: $error',
+                        );
+                      }
+                    }
+                  : null,
 
-                    
-                 
               icon: const Icon(Icons.notifications_active_outlined),
               label: const Text('Send test notification'),
             ),

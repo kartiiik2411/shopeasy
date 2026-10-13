@@ -65,18 +65,18 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
   }
 
   @override
-Widget build(BuildContext context) {
-  final product = widget.product ?? _loadedProduct;
+  Widget build(BuildContext context) {
+    final product = widget.product ?? _loadedProduct;
 
-  debugPrint('--- Product Details Debug ---');
-  debugPrint('Received product: ${widget.product?.title}');
-  debugPrint('Received product ID: ${widget.productId}');
-  debugPrint('Loaded product: ${_loadedProduct?.title}');
-  debugPrint('Is loading: $_isLoading');
-  debugPrint('Load error: $_loadError');
+    debugPrint('--- Product Details Debug ---');
+    debugPrint('Received product: ${widget.product?.title}');
+    debugPrint('Received product ID: ${widget.productId}');
+    debugPrint('Loaded product: ${_loadedProduct?.title}');
+    debugPrint('Is loading: $_isLoading');
+    debugPrint('Load error: $_loadError');
 
-  return Scaffold(
-    // Keep the rest of your existing code unchanged.
+    return Scaffold(
+      // Keep the rest of your existing code unchanged.
       backgroundColor: AppColors.background,
       body: product == null
           ? Center(
@@ -182,7 +182,6 @@ Widget build(BuildContext context) {
     }
   }
 }
-
 
 class _ProductDetailsContent extends StatelessWidget {
   const _ProductDetailsContent({
@@ -436,7 +435,6 @@ class _ImageActionButton extends StatelessWidget {
   }
 }
 
-
 class _ProductAssuranceRow extends StatelessWidget {
   const _ProductAssuranceRow();
 
@@ -476,8 +474,7 @@ class _ProductInfoSection extends StatefulWidget {
   final Product product;
 
   @override
-  State<_ProductInfoSection> createState() =>
-      _ProductInfoSectionState();
+  State<_ProductInfoSection> createState() => _ProductInfoSectionState();
 }
 
 class _ProductInfoSectionState extends State<_ProductInfoSection> {
@@ -487,11 +484,7 @@ class _ProductInfoSectionState extends State<_ProductInfoSection> {
   Widget build(BuildContext context) {
     final product = widget.product;
 
-    const tabs = [
-      'Specifications',
-      'Description',
-      'Manufacturer info',
-    ];
+    const tabs = ['Specifications', 'Description', 'Manufacturer info'];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -569,8 +562,7 @@ class _ProductInfoSectionState extends State<_ProductInfoSection> {
             ),
             _DetailRow(
               label: 'Discount',
-              value:
-                  '${product.discountPercentage.toStringAsFixed(0)}%',
+              value: '${product.discountPercentage.toStringAsFixed(0)}%',
             ),
             _DetailRow(
               label: 'Availability',
@@ -609,10 +601,7 @@ class _ProductInfoSectionState extends State<_ProductInfoSection> {
 }
 
 class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.label,
-    required this.value,
-  });
+  const _DetailRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -653,10 +642,7 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _AssuranceItem extends StatelessWidget {
-  const _AssuranceItem({
-    required this.icon,
-    required this.label,
-  });
+  const _AssuranceItem({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -664,10 +650,7 @@ class _AssuranceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 12,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
@@ -676,11 +659,7 @@ class _AssuranceItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: AppColors.primaryPurple,
-            size: 22,
-          ),
+          Icon(icon, color: AppColors.primaryPurple, size: 22),
           const SizedBox(height: 7),
           Text(
             label,
@@ -696,8 +675,6 @@ class _AssuranceItem extends StatelessWidget {
     );
   }
 }
-
-
 
 class _DeliveryAddressCard extends StatelessWidget {
   const _DeliveryAddressCard({
@@ -756,10 +733,7 @@ class _DeliveryAddressCard extends StatelessWidget {
           if (address == null)
             const Text(
               'Add your address to check delivery availability.',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                height: 1.4,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, height: 1.4),
             )
           else ...[
             Text(
@@ -832,9 +806,7 @@ class _DeliveryAddressCard extends StatelessWidget {
                   children: [
                     const Text(
                       'Sold by',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Text(
